@@ -93,7 +93,7 @@ export default class EmpresasController {
       usuario_id: auth.user?.id as number,
     });
     /* Crear la moneda */
-    const empMon = await EmpresaMoneda.create({
+    await EmpresaMoneda.create({
       empresa_id: empresa.id,
       activo: true,
       moneda_principal_id: request.input('moneda_id'),

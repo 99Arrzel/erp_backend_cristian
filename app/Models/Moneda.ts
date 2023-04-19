@@ -1,27 +1,18 @@
 import { DateTime } from 'luxon';
-import { BaseModel, BelongsTo, HasMany, belongsTo, column, hasMany } from '@ioc:Adonis/Lucid/Orm';
-
+import { BaseModel, BelongsTo, belongsTo, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm';
 import Usuario from './Usuario';
 import EmpresaMoneda from './EmpresaMoneda';
-export default class Empresa extends BaseModel {
+
+export default class Moneda extends BaseModel {
   @column({ isPrimary: true })
   public id: number;
+
   @column()
   public nombre: string;
   @column()
-  public nit: string;
+  public descripcion: string;
   @column()
-  public sigla: string;
-  @column()
-  public telefono: string;
-  @column()
-  public correo: string;
-  @column()
-  public direccion: string;
-  @column()
-  public niveles: number;
-  @column()
-  public estado: boolean;
+  public abreviatura: string;
   @column()
   public usuario_id: number;
 
@@ -29,18 +20,24 @@ export default class Empresa extends BaseModel {
   @belongsTo(() => Usuario, {
     localKey: 'usuario_id',
   })
-
   public usuario: BelongsTo<typeof Usuario>;
 
+
   @hasMany(() => EmpresaMoneda, {
-    foreignKey: 'empresa_id',
+    foreignKey: 'moneda_principal_id',
   })
-  public empresa_monedas: HasMany<typeof EmpresaMoneda>;
+  public moneda_principal: HasMany<typeof EmpresaMoneda>;
+
+  @hasMany(() => EmpresaMoneda, {
+    foreignKey: 'moneda_alternativa_id',
+  })
+  public moneda_alternativa: HasMany<typeof EmpresaMoneda>;
 
 
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime;
+
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime;
 }

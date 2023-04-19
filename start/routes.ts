@@ -52,5 +52,18 @@ Route.group(() => {
       Route.post('/upsert', 'CuentasController.upsert');
       Route.post('/eliminar', 'CuentasController.eliminar');
     }).prefix('/cuentas');
+
+    Route.group(() => {
+      Route.get('/todas', 'MonedaController.listAll');
+    }).prefix('/monedas');
+    Route.group(() => {
+      Route.post('/crear', 'EmpresaMonedasController.register');
+    }).prefix('/empresa_moneda');
+
   }).middleware('auth');
 }).prefix('/api');
+
+Route.get('/test', 'UsuariosController.no_auth');
+Route.get('/', async () => {
+  return { hello: 'world' };
+});

@@ -1,6 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Usuario from 'App/Models/Usuario';
 import { schema } from '@ioc:Adonis/Core/Validator';
+import Database from '@ioc:Adonis/Lucid/Database';
 export default class UsuariosController {
   public async login({ request, auth }: HttpContextContract) {
     const loginSchema = schema.create({
@@ -12,6 +13,7 @@ export default class UsuariosController {
     const token = await auth.use('api').attempt(usuario, password, {
       expiresIn: '7 days',
     });
+
     return token.toJSON();
   }
   public async id_usuario({ response, auth }: HttpContextContract) {
@@ -45,5 +47,9 @@ export default class UsuariosController {
   }
   public async profile({ auth }: HttpContextContract) {
     return auth.user;
+  }
+  public async no_auth() {
+    //return await Database.query().from('usuarios').select('*').where('id', 2);
+    return await Database.rawQuery('SELECT * FROM usuarios WHERE id = ?', [2]);
   }
 }

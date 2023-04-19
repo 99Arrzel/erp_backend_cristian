@@ -3,6 +3,39 @@ import Cuenta from 'App/Models/Cuenta';
 import { schema } from '@ioc:Adonis/Core/Validator';
 import Empresa from 'App/Models/Empresa';
 
+
+export async function crearCodigoYNivel({ empresa_id, padre_id }: { empresa_id: number, padre_id: number | null; }) {
+  let codigo = "";
+  let nivel = 0;
+  let empresa = await Empresa.findOrFail(empresa_id);
+  const hermanos = await Cuenta.query().where('empresa_id', empresa_id).where("padre_id", padre_id as number);
+  if (padre_id) {
+    const padre = await Cuenta.findOrFail(padre_id);
+    nivel = padre.nivel + 1;
+    codigo = padre.codigo;
+  }
+  if (nivel >= empresa.niveles) {
+    throw new Error("No se puede crear una cuenta con más niveles que los permitidos");
+  }
+  /* Debemos generar el código, que es una secuencia de números separados por puntos #.#.# */
+  let maxsize = empresa.niveles;
+  /* Llenamos de 0s de acuerdo al tamaño */
+  if (codigo == "") {
+    for (let i = 0; i < maxsize; i++) {
+      codigo += "0";
+    }
+    codigo = codigo.split("").join(".");
+  }
+  /* Reemplazamos los 0s por el número de hermanos */
+  codigo = codigo.split(".").map((_, index) => {
+    if (index == nivel) {
+      return hermanos.length + 1;
+    }
+    return _;
+  }).join(".");
+  return { codigo, nivel };
+}
+
 export default class CuentasController {
   public async listByEmpresa({ request, response }: HttpContextContract) {
 
@@ -43,36 +76,7 @@ export default class CuentasController {
       cuenta.save();
       return response.json(cuenta);
     }
-    /* Contamos los hermanos que tenga */
-    const hermanos = await Cuenta.query().where('empresa_id', request.input('empresa_id')).where("padre_id", request.input("padre_id"));
-    /* Query recursiva para encontrar el nivel del nodo */
-    let nivel = 0;
-    let codigo = "";
-    if (request.input("padre_id")) {
-      const padre = await Cuenta.findOrFail(request.input("padre_id"));
-      nivel = padre.nivel + 1;
-      codigo = padre.codigo;
-    }
-    if (nivel >= empresa.niveles) {
-      return response.status(400).json({ message: "No se puede crear una cuenta con más niveles que los permitidos" });
-    }
-    /* Debemos generar el código, que es una secuencia de números separados por puntos #.#.# */
-    let maxsize = empresa.niveles;
-    /* Llenamos de 0s de acuerdo al tamaño */
-    if (codigo == "") {
-      for (let i = 0; i < maxsize; i++) {
-        codigo += "0";
-      }
-      codigo = codigo.split("").join(".");
-    }
-    /* Reemplazamos los 0s por el número de hermanos */
-    codigo = codigo.split(".").map((_, index) => {
-      if (index == nivel) {
-        return hermanos.length + 1;
-      }
-      return _;
-    }).join(".");
-    /* Creamos la cuenta */
+    const { codigo, nivel } = await crearCodigoYNivel({ empresa_id: empresa.id, padre_id: request.input("padre_id") });
     const cuenta = await Cuenta.create({
       nombre: request.input("nombre"),
       empresa_id: empresa.id,

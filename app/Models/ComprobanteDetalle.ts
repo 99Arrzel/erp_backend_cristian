@@ -44,9 +44,9 @@ export default class ComprobanteDetalle extends BaseModel {
   public comprobante: BelongsTo<typeof Comprobante>;
 
   @belongsTo(() => Cuenta, {
-    localKey: 'cuenta_id',
+    foreignKey: 'cuenta_id',
   })
-  public moneda: BelongsTo<typeof Cuenta>;
+  public cuenta: BelongsTo<typeof Cuenta>;
 
 
 

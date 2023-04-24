@@ -61,6 +61,8 @@ Route.group(() => {
     }).prefix('/empresa_moneda');
     Route.group(() => {
       Route.post('/crear', 'ComprobantesController.crearComprobante');
+      Route.get('/cerrar/:id', 'ComprobantesController.cerrarComprobante');
+      Route.get('/anular/:id', 'ComprobantesController.anularComprobante');
     }).prefix('/comprobante');
 
   }).middleware('auth');

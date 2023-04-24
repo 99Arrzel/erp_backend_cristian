@@ -181,7 +181,11 @@ export default class EmpresasController {
         query.preload('moneda_alternativa').preload('moneda_principal').orderBy('id', 'desc');
       })
       .preload('comprobantes', (query) => {
-        query.preload('comprobante_detalles').preload('moneda');
+        query.orderBy('created_at', 'desc').preload('comprobante_detalles',
+          (query) => {
+            query.preload('cuenta');
+          }
+        ).preload('moneda');
 
       })
       .preload('cuentas', (query) => {

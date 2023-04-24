@@ -11,22 +11,23 @@ export default class ComprobantesController {
     const comprobantes = await Comprobante.query().where('empresa_id', empresa_id).where('usuario_id', auth.user?.id as number);
     return response.json(comprobantes);
   }
-  public async cerrar({ request, response, auth }: HttpContextContract) {
-    const { id } = request.all();
+  public async cerrarComprobante({ request, response, auth }: HttpContextContract) {
+    const id = request.param('id');
     if (!id) {
-      return response.badRequest({ error: 'No se ha enviado el id del comprobante' });
+
+      return response.badRequest({ message: 'No se ha enviado el id del comprobante' });
     }
     const comprobante = await Comprobante.findOrFail(id);
     if (comprobante.usuario_id != auth.user?.id) {
-      return response.unauthorized({ error: 'No tiene permiso para realizar esta acción' });
+      return response.unauthorized({ message: 'No tiene permiso para realizar esta acción' });
     }
     /* Seteamos a Cerrado */
     comprobante.estado = 'Cerrado';
     await comprobante.save();
     return response.json(comprobante);
   }
-  public async anular({ request, response, auth }: HttpContextContract) {
-    const { id } = request.all();
+  public async anularComprobante({ request, response, auth }: HttpContextContract) {
+    const id = request.param('id');
     if (!id) {
       return response.badRequest({ error: 'No se ha enviado el id del comprobante' });
     }
@@ -106,38 +107,33 @@ export default class ComprobantesController {
     if (cuentasVal.length !== detalles.length) {
       return response.status(400).json({ message: "Alguna cuenta no es de último nivel, chequea eso" });
     }
-    type tt = { total: string; };
-    const comprobanteSerie = (await Comprobante.query().where('empresa_id', request.input('empresa_id')).count('* as total')).length;
+    const comprobanteSerie = await Comprobante.query().where('empresa_id', request.input('empresa_id'));
+    const serie = comprobanteSerie.length + 1;
+    const comprobante = new Comprobante();
+    comprobante.serie = serie.toString();
+    comprobante.glosa = request.input('glosa');
+    comprobante.fecha = request.input('fecha');
+    comprobante.tc = request.input('tc');
+    comprobante.tipo = request.input('tipo') as TipoComprobante;
+    comprobante.empresa_id = request.input('empresa_id');
+    comprobante.moneda_id = request.input('moneda_id');
+    comprobante.usuario_id = auth.user?.id as number;
 
-    await Database.transaction(
-      async (trx) => {
-        const comprobante = new Comprobante();
-        comprobante.serie = ((comprobanteSerie ?? 0) + 1).toString();
-        comprobante.glosa = request.input('glosa');
-        comprobante.fecha = request.input('fecha');
-        comprobante.tc = request.input('tc');
-        comprobante.tipo = request.input('tipo') as TipoComprobante;
-        comprobante.empresa_id = request.input('empresa_id');
-        comprobante.moneda_id = request.input('moneda_id');
-        comprobante.usuario_id = auth.user?.id as number;
-        comprobante.useTransaction(trx);
-        await comprobante.save();
-        comprobante.related('comprobante_detalles').createMany(detalles.map((detalle, index) => {
-          return {
-            numero: (index + 1).toString(),
-            glosa: detalle.glosa,
-            cuenta_id: detalle.cuenta_id,
-            monto_debe: detalle.debe ?? null,
-            monto_haber: detalle.haber ?? null,
-            monto_debe_alt: detalle.debe ? detalle.debe * request.input('tc') : null,
-            monto_haber_alt: detalle.haber ? detalle.haber * request.input('tc') : null,
-            usuario_id: auth.user?.id as number,
-          };
-        }
-        ));
-      }
-    );
-    /* Quizá esto sea un amague */
-    return response.status(200).json({ message: "Comprobante creado" });
+    await comprobante.save();
+    comprobante.related('comprobante_detalles').createMany(detalles.map((detalle, index) => {
+      return {
+        numero: (index + 1).toString(),
+        glosa: detalle.glosa,
+        cuenta_id: detalle.cuenta_id,
+        monto_debe: detalle.debe ?? null,
+        monto_haber: detalle.haber ?? null,
+        monto_debe_alt: detalle.debe ? detalle.debe * request.input('tc') : null,
+        monto_haber_alt: detalle.haber ? detalle.haber * request.input('tc') : null,
+        usuario_id: auth.user?.id as number,
+      };
+    }
+    ));
+    return response.status(200).json({ message: "Creado con éxito" });
+
   }
 }

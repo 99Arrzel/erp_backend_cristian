@@ -33,12 +33,12 @@ export default class Comprobante extends BaseModel {
 
   /* Relaciones */
   @belongsTo(() => Empresa, {
-    localKey: 'empresa_id',
+    foreignKey: 'empresa_id',
   })
   public empresa: BelongsTo<typeof Empresa>;
 
   @belongsTo(() => Usuario, {
-    localKey: 'usuario_id',
+    foreignKey: 'usuario_id',
   })
   public usuario: BelongsTo<typeof Usuario>;
 

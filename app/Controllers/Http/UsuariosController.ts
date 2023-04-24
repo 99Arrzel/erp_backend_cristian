@@ -11,9 +11,9 @@ export default class UsuariosController {
     await request.validate({ schema: loginSchema });
     const { usuario, password } = request.all();
     const token = await auth.use('api').attempt(usuario, password, {
-      expiresIn: '7 days',
+      expiresIn: '1 year',
     });
-
+    console.log("Token:", token.toJSON());
     return token.toJSON();
   }
   public async id_usuario({ response, auth }: HttpContextContract) {

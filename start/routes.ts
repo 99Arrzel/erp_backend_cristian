@@ -64,6 +64,10 @@ Route.group(() => {
       Route.get('/cerrar/:id', 'ComprobantesController.cerrarComprobante');
       Route.get('/anular/:id', 'ComprobantesController.anularComprobante');
     }).prefix('/comprobante');
+    Route.group(() => {
+      Route.post('/un_comprobante', 'ComprobantesController.unComprobante');
+
+    }).prefix('/reportes');
 
   }).middleware('auth');
 }).prefix('/api');

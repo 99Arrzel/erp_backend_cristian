@@ -4,8 +4,25 @@ import { schema } from '@ioc:Adonis/Core/Validator';
 import Periodo from 'App/Models/Periodo';
 import Gestion from 'App/Models/Gestion';
 import Cuenta from 'App/Models/Cuenta';
-import Database from '@ioc:Adonis/Lucid/Database';
 export default class ComprobantesController {
+
+  public async unComprobante({ request, response, auth }: HttpContextContract) {
+    console.log(request.input('id'));
+    const id = request.input('id');
+    if (!id) {
+      return response.badRequest({ error: 'No se ha enviado el id del comprobante' });
+    }
+    const comprobante = await Comprobante.query().where('id', id).where('usuario_id', auth.user?.id as number).preload('comprobante_detalles', (query) => {
+      query.preload('cuenta');
+    }).preload('empresa')
+      .preload('moneda')
+      .preload('usuario').first();
+    if (!comprobante) {
+      return response.badRequest({ error: 'No se ha encontrado el comprobante' });
+    }
+    return response.json(comprobante);
+  }
+
   public async listByEmpresa({ request, response, auth }: HttpContextContract) {
     const { empresa_id } = request.all();
     const comprobantes = await Comprobante.query().where('empresa_id', empresa_id).where('usuario_id', auth.user?.id as number);

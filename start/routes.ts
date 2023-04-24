@@ -59,6 +59,9 @@ Route.group(() => {
     Route.group(() => {
       Route.post('/crear', 'EmpresaMonedasController.register');
     }).prefix('/empresa_moneda');
+    Route.group(() => {
+      Route.post('/crear', 'ComprobantesController.crearComprobante');
+    }).prefix('/comprobante');
 
   }).middleware('auth');
 }).prefix('/api');

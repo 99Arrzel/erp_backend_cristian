@@ -180,7 +180,17 @@ export default class EmpresasController {
       .preload('empresa_monedas', (query) => {
         query.preload('moneda_alternativa').preload('moneda_principal').orderBy('id', 'desc');
       })
+      .preload('comprobantes', (query) => {
+        query.preload('comprobante_detalles').preload('moneda');
+
+      })
+      .preload('cuentas', (query) => {
+        query.where('tipo', "GLOBAL");
+      }
+      )
       .first();
+
+
     if (empresa) {
       return response.json(empresa);
     }

@@ -2,6 +2,7 @@ import { DateTime } from 'luxon';
 import { BaseModel, BelongsTo, belongsTo, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm';
 import Usuario from './Usuario';
 import EmpresaMoneda from './EmpresaMoneda';
+import Comprobante from './Comprobante';
 
 export default class Moneda extends BaseModel {
   @column({ isPrimary: true })
@@ -33,6 +34,10 @@ export default class Moneda extends BaseModel {
   })
   public moneda_alternativa: HasMany<typeof EmpresaMoneda>;
 
+  @hasMany(() => Comprobante, {
+    foreignKey: 'empresa_id',
+  })
+  public comprobantes: HasMany<typeof Comprobante>;
 
 
   @column.dateTime({ autoCreate: true })

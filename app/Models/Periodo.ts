@@ -23,7 +23,7 @@ export default class Periodo extends BaseModel {
   })
   public usuario: BelongsTo<typeof Usuario>;
   @belongsTo(() => Gestion, {
-    localKey: 'gestion_id',
+    foreignKey: 'gestion_id',
   })
   public gestion: BelongsTo<typeof Gestion>;
 

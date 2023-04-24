@@ -1,4 +1,4 @@
-import Schema from "@ioc:Adonis/Lucid/Schema";
+import Schema from '@ioc:Adonis/Lucid/Schema';
 
 class InsertDefaultMonedasSchema extends Schema {
   async up() {
@@ -18,9 +18,7 @@ class InsertDefaultMonedasSchema extends Schema {
     ]);
   }
 
-  async down() {
-
-  }
+  async down() { }
 }
 
 module.exports = InsertDefaultMonedasSchema;

@@ -4,6 +4,8 @@ import Empresa from './Empresa';
 import Gestion from './Gestion';
 import Periodo from './Periodo';
 import Hash from '@ioc:Adonis/Core/Hash';
+import Comprobante from './Comprobante';
+import ComprobanteDetalle from './ComprobanteDetalle';
 
 //import { Encryption } from '@adonisjs/core/build/standalone'; //standalone
 
@@ -38,6 +40,17 @@ export default class Usuario extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime;
+
+  @hasMany(() => Comprobante, {
+    foreignKey: 'usuario_id',
+  })
+  public comprobantes: HasMany<typeof Comprobante>;
+
+  @hasMany(() => ComprobanteDetalle, {
+    foreignKey: 'usuario_id',
+  })
+  public comprobante_detalles: HasMany<typeof ComprobanteDetalle>;
+
 
   @beforeSave()
   public static async hashPassword(usuario: Usuario) {

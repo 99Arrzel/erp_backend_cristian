@@ -3,6 +3,8 @@ import { BaseModel, BelongsTo, HasMany, belongsTo, column, hasMany } from '@ioc:
 
 import Usuario from './Usuario';
 import EmpresaMoneda from './EmpresaMoneda';
+import Comprobante from './Comprobante';
+import Cuenta from './Cuenta';
 export default class Empresa extends BaseModel {
   @column({ isPrimary: true })
   public id: number;
@@ -36,6 +38,15 @@ export default class Empresa extends BaseModel {
     foreignKey: 'empresa_id',
   })
   public empresa_monedas: HasMany<typeof EmpresaMoneda>;
+
+  @hasMany(() => Comprobante, {
+    foreignKey: 'empresa_id',
+  })
+  public comprobantes: HasMany<typeof Comprobante>;
+  @hasMany(() => Cuenta, {
+    foreignKey: 'empresa_id',
+  })
+  public cuentas: HasMany<typeof Cuenta>;
 
 
 

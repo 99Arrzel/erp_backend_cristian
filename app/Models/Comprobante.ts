@@ -2,52 +2,57 @@ import { DateTime } from 'luxon';
 import { BaseModel, BelongsTo, HasMany, belongsTo, column, hasMany } from '@ioc:Adonis/Lucid/Orm';
 import Empresa from './Empresa';
 import Usuario from './Usuario';
+import Moneda from './Moneda';
 import ComprobanteDetalle from './ComprobanteDetalle';
 
-export default class Cuenta extends BaseModel {
+export type Estado = 'Abierto' | 'Cerrado' | 'Anulado';
+export type TipoComprobante = 'Ingreso' | 'Egreso' | 'Traspaso' | 'Apertura' | 'Ajuste';
+
+export default class Comprobante extends BaseModel {
   @column({ isPrimary: true })
   public id: number;
 
   @column()
-  public nombre: string;
-
+  public serie: string;
   @column()
-  public codigo: string;
-
+  public glosa: string;
   @column()
-  public nivel: number;
-
+  public fecha: DateTime;
   @column()
-  public tipo: string;
+  public tc: number;
+  @column()
+  public estado: Estado;
+  @column()
+  public tipo: TipoComprobante;
   @column()
   public empresa_id: number;
-
-  @column()
-  public padre_id: number;
-
   @column()
   public usuario_id: number;
+  @column()
+  public moneda_id: number;
+
+  /* Relaciones */
+  @belongsTo(() => Empresa, {
+    localKey: 'empresa_id',
+  })
+  public empresa: BelongsTo<typeof Empresa>;
 
   @belongsTo(() => Usuario, {
     localKey: 'usuario_id',
   })
   public usuario: BelongsTo<typeof Usuario>;
 
-  @belongsTo(() => Empresa, {
-    localKey: 'empresa_id',
+  @belongsTo(() => Moneda, {
+    foreignKey: 'moneda_id',
   })
-  public empresa: BelongsTo<typeof Empresa>;
-
-  @belongsTo(() => Cuenta, {
-    localKey: 'padre_id',
-  })
-
-  public padre: BelongsTo<typeof Cuenta>;
+  public moneda: BelongsTo<typeof Moneda>;
 
   @hasMany(() => ComprobanteDetalle, {
-    foreignKey: 'cuenta_id',
+    foreignKey: 'comprobante_id',
   })
   public comprobante_detalles: HasMany<typeof ComprobanteDetalle>;
+
+
 
 
 

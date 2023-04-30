@@ -12,7 +12,7 @@ export default class ComprobantesController {
     if (!id) {
       return response.badRequest({ error: 'No se ha enviado el id del comprobante' });
     }
-    const comprobante = await Comprobante.query().where('id', id).where('usuario_id', auth.user?.id as number).preload('comprobante_detalles', (query) => {
+    let comprobante = await Comprobante.query().where('id', id).where('usuario_id', auth.user?.id as number).preload('comprobante_detalles', (query) => {
       query.preload('cuenta');
     }).preload('empresa')
       .preload('moneda')
@@ -21,6 +21,37 @@ export default class ComprobantesController {
       return response.badRequest({ error: 'No se ha encontrado el comprobante' });
     }
     return response.json(comprobante);
+  }
+
+  public async ComprobanteAperturaGestion({ request, response, auth }: HttpContextContract) {
+    const id_gestion = request.input('id_gestion');
+    const id_moneda = request.input('id_moneda');
+    if (!id_gestion) {
+      return response.badRequest({ error: 'No se ha enviado el id de la gestión' });
+    }
+    const gestion = await Gestion.findOrFail(id_gestion);
+    const fecha_inicio = gestion.fecha_inicio.toFormat('yyyy-MM-dd');
+    const fecha_fin = gestion.fecha_fin.toFormat('yyyy-MM-dd');
+    const comprobanteApertura = await Comprobante.query().where('tipo', 'Apertura').where('usuario_id', auth.user?.id as number).where('empresa_id', gestion.empresa_id)
+      .where('fecha', '>=', fecha_inicio).where('fecha', '<=', fecha_fin)
+      .preload('comprobante_detalles', (query) => {
+        query.preload('cuenta');
+      })
+      .preload('empresa')
+      .preload('moneda')
+      .first();
+    if (!comprobanteApertura) {
+      return response.badRequest({ error: 'No se ha encontrado el comprobante de apertura' });
+    }
+    //Si la moneda_id es diferente a la moneda_id del comprobante, quiere decir que está con el cambio oficial, no se cambia el debe ni haber
+    //Pero si es igual, se debe cambiar el debe y el haber por sus alts
+    if (comprobanteApertura.moneda_id != id_moneda) {
+      comprobanteApertura.comprobante_detalles.forEach((detalle) => {
+        detalle.monto_debe = detalle.monto_debe_alt;
+        detalle.monto_haber = detalle.monto_haber_alt;
+      });
+    }
+    return response.json(comprobanteApertura);
   }
 
   public async listByEmpresa({ request, response, auth }: HttpContextContract) {

@@ -33,7 +33,7 @@ export default class ComprobantesController {
     const fecha_inicio = new Date(gestion.fecha_inicio.toString());
     const fecha_fin = new Date(gestion.fecha_fin.toString());
     const comprobanteApertura = await Comprobante.query().where('tipo', 'Apertura').where('usuario_id', auth.user?.id as number).where('empresa_id', gestion.empresa_id)
-      .where('fecha', '<=', fecha_inicio).where('fecha', '>=', fecha_fin)
+      .whereBetween('fecha', [fecha_inicio, fecha_fin])
       .preload('comprobante_detalles', (query) => {
         query.preload('cuenta');
       })

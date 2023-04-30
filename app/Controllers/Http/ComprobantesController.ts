@@ -40,6 +40,14 @@ export default class ComprobantesController {
       .preload('empresa')
       .preload('moneda')
       .first();
+    console.log(Comprobante.query().where('tipo', 'Apertura').where('usuario_id', auth.user?.id as number).where('empresa_id', gestion.empresa_id)
+      .whereBetween('fecha', [fecha_inicio, fecha_fin])
+      .preload('comprobante_detalles', (query) => {
+        query.preload('cuenta');
+      })
+      .preload('empresa')
+      .preload('moneda')
+      .toSQL());
     if (!comprobanteApertura) {
       return response.badRequest({ error: 'No se ha encontrado el comprobante de apertura' });
     }

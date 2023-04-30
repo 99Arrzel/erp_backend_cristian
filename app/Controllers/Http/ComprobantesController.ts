@@ -30,8 +30,8 @@ export default class ComprobantesController {
       return response.badRequest({ error: 'No se ha enviado el id de la gestión' });
     }
     const gestion = await Gestion.findOrFail(id_gestion);
-    const fecha_inicio = gestion.fecha_inicio.toFormat('yyyy-MM-dd');
-    const fecha_fin = gestion.fecha_fin.toFormat('yyyy-MM-dd');
+    const fecha_inicio = new Date(gestion.fecha_inicio.toString());
+    const fecha_fin = new Date(gestion.fecha_fin.toString());
     const comprobanteApertura = await Comprobante.query().where('tipo', 'Apertura').where('usuario_id', auth.user?.id as number).where('empresa_id', gestion.empresa_id)
       .where('fecha', '>=', fecha_inicio).where('fecha', '<=', fecha_fin)
       .preload('comprobante_detalles', (query) => {

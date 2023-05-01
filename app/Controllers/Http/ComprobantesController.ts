@@ -38,7 +38,7 @@ export default class ComprobantesController {
 
   public async ComprobanteAperturaGestion({ request, response, auth }: HttpContextContract) {
     const id_gestion = request.input('id_gestion');
-    const id_moneda = request.input('id_moneda');
+    //const id_moneda = request.input('id_moneda');
     if (!id_gestion) {
       return response.badRequest({ error: 'No se ha enviado el id de la gestión' });
     }

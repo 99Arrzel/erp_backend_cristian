@@ -163,7 +163,8 @@ export default class ComprobantesController {
         }
       },
       empresa,
-      moneda
+      moneda,
+      usuario: auth.user,
     });
   }
   public async listByEmpresa({ request, response, auth }: HttpContextContract) {

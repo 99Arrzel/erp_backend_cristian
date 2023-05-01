@@ -134,18 +134,18 @@ export default class ComprobantesController {
       comprobante: comprobanteApertura, detalles: {
         activos: {
           cuentas: activos,
-          total_debe: SumDetalles({ cuentas: activos, haber_o_debe: 'debe' }),
-          total_haber: SumDetalles({ cuentas: activos, haber_o_debe: 'haber' })
+          //total_debe: SumDetalles({ cuentas: activos, haber_o_debe: 'debe' }),
+          //total_haber: SumDetalles({ cuentas: activos, haber_o_debe: 'haber' })
         },
         pasivo_y_patrimonio: {
           cuentas: [...pasivos, ...patrimonios],
-          total_debe: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'debe' }),
-          total_haber: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'haber' })
+          //total_debe: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'debe' }),
+          ///total_haber: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'haber' })
         },
         resto: {
           cuentas: resto,
-          total_debe: SumDetalles({ cuentas: resto, haber_o_debe: 'debe' }),
-          total_haber: SumDetalles({ cuentas: resto, haber_o_debe: 'haber' })
+          //total_debe: SumDetalles({ cuentas: resto, haber_o_debe: 'debe' }),
+          //total_haber: SumDetalles({ cuentas: resto, haber_o_debe: 'haber' })
         }
       }
     });

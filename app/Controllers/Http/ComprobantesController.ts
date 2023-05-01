@@ -77,17 +77,18 @@ export default class ComprobantesController {
       .withRecursive('padre', (query) => {
         // The base case: Select the rows with the child IDs
         query
-          .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', 'detalle_comprobantes.monto_debe as total_debe')
+          .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', Database.raw('COALESCE(SUM(detalle_comprobantes.monto_debe), 0) as total_debe'))
           .from('cuentas')
           .leftJoin('detalle_comprobantes', 'cuentas.id', 'detalle_comprobantes.cuenta_id')
           .whereIn('cuentas.id', ids_cuentas)
+          .groupBy('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id')
           .union((qb) => {
-            // The recursive step: Select rows with parent IDs from the previous step and add the current row's monto_debe to the sum from the previous step
+            // The recursive step: Select rows with parent IDs from the previous step and sum the monto_debe from the child accounts
             qb
-              .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', Database.raw('padre.total_debe + detalle_comprobantes.monto_debe as total_debe'))
+              .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', Database.raw('COALESCE(SUM(padre.total_debe), 0) as total_debe'))
               .from('cuentas')
               .join('padre', 'cuentas.id', 'padre.padre_id')
-              .leftJoin('detalle_comprobantes', 'cuentas.id', 'detalle_comprobantes.cuenta_id');
+              .groupBy('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id');
           });
       })
       .select('padre.id', 'padre.codigo', 'padre.nombre', 'padre.padre_id', 'padre.nivel', 'padre.tipo', 'padre.empresa_id', 'padre.total_debe')

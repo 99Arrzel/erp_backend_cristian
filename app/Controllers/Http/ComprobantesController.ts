@@ -47,10 +47,18 @@ export default class ComprobantesController {
       return response.badRequest({ error: 'No se ha encontrado el comprobante de apertura' });
     }
     const ids_cuentas = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('cuenta_id').distinct();
+
+    /* Recursive ids */
+    const ids_cuentas2 = ComprobanteDetalle.query().withRecursive('cuentas', (query) => {
+      query.select('cuenta_id').from('comprobante_detalles').where('comprobante_id', comprobanteApertura.id).unionAll((query2) => {
+        query2.select('cuenta_id').from('cuentas').innerJoin('comprobante_detalles', 'cuentas.cuenta_id', 'comprobante_detalles.cuenta_id').where('comprobante_id', comprobanteApertura.id);
+      });
+    }).select('cuenta_id').distinct();
+
     const ids_detalles = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct();
     const cuentas = await Cuenta.query()
       .where('empresa_id', gestion.empresa_id)
-      .whereIn('id', ids_cuentas)
+      .whereIn('id', ids_cuentas2)
       .orderByRaw("inet_truchon(codigo)")
       //.groupBy('codigo')
       .preload('comprobante_detalles', (query) => {

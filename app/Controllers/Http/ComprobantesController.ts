@@ -165,6 +165,7 @@ export default class ComprobantesController {
       empresa,
       moneda,
       usuario: auth.user,
+      gestion
     });
   }
   public async listByEmpresa({ request, response, auth }: HttpContextContract) {

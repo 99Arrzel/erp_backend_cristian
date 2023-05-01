@@ -73,7 +73,7 @@ export default class ComprobantesController {
       .from('padre')).map((v) => v.id);
     const ids_detalles = (await ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct()).map((v) => v.id);
     const cuentas = await logQueryBuilder(Cuenta.query()
-      .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo', 'total_debe')
+      .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
       .where('empresa_id', gestion.empresa_id)
       .whereIn('id', ids_cuentas2)
       .orderByRaw("inet_truchon(codigo)")
@@ -93,6 +93,17 @@ export default class ComprobantesController {
         });
       });
     }
+    const cuentas_detalles = cuentas.map((cuenta) => {
+      return {
+        ...cuenta,
+        haber: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_debe ?? 0), 0),
+        debe: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_haber ?? 0), 0),
+        haber_alt: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_debe_alt ?? 0), 0),
+        debe_alt: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_haber_alt ?? 0), 0),
+      };
+    });
+    console.log(cuentas_detalles, "Detalles");
+
     const activos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('1'));
     const pasivos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('2'));
     const patrimonios = cuentas.filter((cuenta) => cuenta.codigo.startsWith('3'));

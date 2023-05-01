@@ -38,7 +38,7 @@ export default class ComprobantesController {
 
   public async ComprobanteAperturaGestion({ request, response, auth }: HttpContextContract) {
     const id_gestion = request.input('id_gestion');
-    //const id_moneda = request.input('id_moneda');
+    const id_moneda = request.input('id_moneda');
     if (!id_gestion) {
       return response.badRequest({ error: 'No se ha enviado el id de la gestión' });
     }
@@ -99,32 +99,22 @@ export default class ComprobantesController {
       .where('empresa_id', gestion.empresa_id)
       .whereIn('id', ids_cuentas3)
       .orderByRaw("inet_truchon(codigo)")
-      .withAggregate('comprobante_detalles', (query) => {
-        query.whereIn('id', ids_detalles);
-        query.sum('monto_debe').as('total_debe');
-      })
-      .withAggregate('comprobante_detalles', (query) => {
-        query.whereIn('id', ids_detalles);
-        query.sum('monto_haber').as('total_haber');
-      })
-      .withAggregate('comprobante_detalles', (query) => {
-        query.whereIn('id', ids_detalles);
-        query.sum('monto_debe_alt').as('total_debe_alt');
-      })
-      .withAggregate('comprobante_detalles', (query) => {
-        query.whereIn('id', ids_detalles);
-        query.sum('monto_haber_alt').as('total_haber_alt');
+      //.groupBy('codigo')
+      .preload('comprobante_detalles', (query) => {
+        query.whereIn('id', ids_detalles)
+          .select('monto_debe', 'monto_haber', 'monto_debe_alt', 'monto_haber_alt', 'id', 'glosa');
       });
 
-    /* if (comprobanteApertura.moneda_id == id_moneda) {
+    if (comprobanteApertura.moneda_id == id_moneda) {
       cuentas.forEach((cuenta) => {
-
         cuenta.comprobante_detalles.forEach((detalle) => {
           detalle.monto_debe = detalle.monto_debe_alt;
           detalle.monto_haber = detalle.monto_haber_alt;
         });
       });
-    } */
+    }
+
+
     const activos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('1'));
     const pasivos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('2'));
     const patrimonios = cuentas.filter((cuenta) => cuenta.codigo.startsWith('3'));
@@ -134,18 +124,18 @@ export default class ComprobantesController {
       comprobante: comprobanteApertura, detalles: {
         activos: {
           cuentas: activos,
-          //total_debe: SumDetalles({ cuentas: activos, haber_o_debe: 'debe' }),
-          //total_haber: SumDetalles({ cuentas: activos, haber_o_debe: 'haber' })
+          total_debe: SumDetalles({ cuentas: activos, haber_o_debe: 'debe' }),
+          total_haber: SumDetalles({ cuentas: activos, haber_o_debe: 'haber' })
         },
         pasivo_y_patrimonio: {
           cuentas: [...pasivos, ...patrimonios],
-          //total_debe: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'debe' }),
-          ///total_haber: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'haber' })
+          total_debe: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'debe' }),
+          total_haber: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'haber' })
         },
         resto: {
           cuentas: resto,
-          //total_debe: SumDetalles({ cuentas: resto, haber_o_debe: 'debe' }),
-          //total_haber: SumDetalles({ cuentas: resto, haber_o_debe: 'haber' })
+          total_debe: SumDetalles({ cuentas: resto, haber_o_debe: 'debe' }),
+          total_haber: SumDetalles({ cuentas: resto, haber_o_debe: 'haber' })
         }
       }
     });

@@ -73,29 +73,27 @@ export default class ComprobantesController {
       .from('padre')).map((v) => v.id);
     /* ========= */
 
-    const test = await logQueryBuilder(Cuenta.query()
-      .withRecursive('cuentas', (query) => {
-        query.select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
-          .where('empresa_id', gestion.empresa_id)
-          .whereIn('id', ids_cuentas2)
-          .preload('comprobante_detalles', (query) => {
-            query.where('comprobante_id', comprobanteApertura.id)
-              .select('monto_debe', 'monto_haber', 'monto_debe_alt', 'monto_haber_alt', 'id', 'glosa');
-          })
-          .withAggregate('comprobante_detalles', (query) => {
-            query.sum('monto_debe').as('total_debe');
-          })
-          .withAggregate('comprobante_detalles', (query) => {
-            query.sum('monto_haber').as('total_haber');
-          })
-          /* Sum this aggregates to parents */
-          .unionAll((qb) => {
-            qb.select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo')
+    const test = await Database.query()
+      .withRecursive('padre', (query) => {
+        // The base case: Select the rows with the child IDs
+        query
+          .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', 'comprobante_detalles.monto_debe as total_debe')
+          .from('cuentas')
+          .leftJoin('comprobante_detalles', 'cuentas.id', 'comprobante_detalles.cuenta_id')
+          .whereIn('cuentas.id', ids_cuentas)
+          .union((qb) => {
+            // The recursive step: Select rows with parent IDs from the previous step and add the current row's monto_debe to the sum from the previous step
+            qb
+              .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', Database.raw('padre.total_debe + comprobante_detalles.monto_debe as total_debe'))
               .from('cuentas')
-              .join('cuentas as c', 'cuentas.padre_id', 'c.id');
-          })
-          .orderByRaw("inet_truchon(codigo)");
-      }));
+              .join('padre', 'cuentas.id', 'padre.padre_id')
+              .leftJoin('comprobante_detalles', 'cuentas.id', 'comprobante_detalles.cuenta_id');
+          });
+      })
+      .select('padre.id', 'padre.codigo', 'padre.nombre', 'padre.padre_id', 'padre.nivel', 'padre.tipo', 'padre.empresa_id', 'padre.total_debe')
+      .from('padre')
+      .where('padre.empresa_id', gestion.empresa_id)
+      .orderByRaw("inet_truchon(padre.codigo)");
     console.log(test, "Res test");
     /* ========= */
 

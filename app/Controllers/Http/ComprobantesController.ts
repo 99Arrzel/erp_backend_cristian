@@ -4,6 +4,7 @@ import { schema } from '@ioc:Adonis/Core/Validator';
 import Periodo from 'App/Models/Periodo';
 import Gestion from 'App/Models/Gestion';
 import Cuenta from 'App/Models/Cuenta';
+import ComprobanteDetalle from 'App/Models/ComprobanteDetalle';
 export default class ComprobantesController {
 
   public async unComprobante({ request, response, auth }: HttpContextContract) {
@@ -34,40 +35,29 @@ export default class ComprobantesController {
     const fecha_fin = new Date(gestion.fecha_fin.toString());
     const comprobanteApertura = await Comprobante.query().where('tipo', 'Apertura').where('usuario_id', auth.user?.id as number).where('empresa_id', gestion.empresa_id)
       .whereBetween('fecha', [fecha_inicio, fecha_fin])
-      .preload('comprobante_detalles', (query) => {
-        query.preload('cuenta');
-      })
-      .preload('empresa')
-      .preload('moneda')
       .first();
-    console.log(Comprobante.query().where('tipo', 'Apertura').where('usuario_id', auth.user?.id as number).where('empresa_id', gestion.empresa_id)
-      .whereBetween('fecha', [fecha_inicio, fecha_fin])
-      .preload('comprobante_detalles', (query) => {
-        query.preload('cuenta');
-      })
-      .preload('empresa')
-      .preload('moneda')
-      .toQuery());
-    console.log(Comprobante.query().where('tipo', 'Apertura').where('usuario_id', auth.user?.id as number).where('empresa_id', gestion.empresa_id)
-      .whereBetween('fecha', [fecha_inicio, fecha_fin])
-      .preload('comprobante_detalles', (query) => {
-        query.preload('cuenta');
-      })
-      .preload('empresa')
-      .preload('moneda')
-      .toSQL());
     if (!comprobanteApertura) {
       return response.badRequest({ error: 'No se ha encontrado el comprobante de apertura' });
     }
-    //Si la moneda_id es diferente a la moneda_id del comprobante, quiere decir que está con el cambio oficial, no se cambia el debe ni haber
-    //Pero si es igual, se debe cambiar el debe y el haber por sus alts
-    if (comprobanteApertura.moneda_id != id_moneda) {
-      comprobanteApertura.comprobante_detalles.forEach((detalle) => {
-        detalle.monto_debe = detalle.monto_debe_alt;
-        detalle.monto_haber = detalle.monto_haber_alt;
+    const ids_cuentas = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('cuenta_id').distinct();
+    const ids_detalles = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct();
+    const cuentas = await Cuenta.query()
+      .where('empresa_id', gestion.empresa_id)
+      .whereIn('id', ids_cuentas)
+      .orderByRaw("inet_truchon(codigo)")
+      .groupBy('codigo')
+      .preload('comprobante_detalles', (query) => {
+        query.whereIn('id', ids_detalles).preload('comprobante');
+      });
+    if (comprobanteApertura.moneda_id == id_moneda) {
+      cuentas.forEach((cuenta) => {
+        cuenta.comprobante_detalles.forEach((detalle) => {
+          detalle.monto_debe = detalle.monto_debe_alt;
+          detalle.monto_haber = detalle.monto_haber_alt;
+        });
       });
     }
-    return response.json(comprobanteApertura);
+    return response.json({ comprobante: comprobanteApertura, detalles: cuentas });
   }
 
   public async listByEmpresa({ request, response, auth }: HttpContextContract) {

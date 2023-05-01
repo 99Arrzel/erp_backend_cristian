@@ -67,6 +67,8 @@ export default class ComprobantesController {
       })
       .select('id')
       .from('padre');
+    //Esto va a tirar un array de {id: number} y necesitamos un array de number
+    const ids_cuentas3: number[] = ids_cuentas2.map((cuenta) => cuenta.id);
 
     console.log(Cuenta.query()
       .withRecursive('padre', (query) => {
@@ -74,7 +76,7 @@ export default class ComprobantesController {
         query
           .select('id', 'padre_id')
           .from('cuentas')
-          .whereIn('id', ids_cuentas)
+          .whereIn('id', ids_cuentas3)
           .union((qb) => {
             // The recursive step: Select rows with parent IDs from the previous step
             qb

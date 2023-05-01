@@ -63,7 +63,7 @@ export default class ComprobantesController {
       .from('padre')).map((v) => v.id);
     const ids_detalles = (await ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct()).map((v) => v.id);
     const cuentas = await Cuenta.query()
-      .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
+      .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo', 'total_debe')
       .where('empresa_id', gestion.empresa_id)
       .whereIn('id', ids_cuentas2)
       .orderByRaw("inet_truchon(codigo)")
@@ -76,20 +76,7 @@ export default class ComprobantesController {
         query.sum('monto_debe').as('total_debe');
       });
 
-
-    console.log(Cuenta.query()
-      .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
-      .where('empresa_id', gestion.empresa_id)
-      .whereIn('id', ids_cuentas2)
-      .orderByRaw("inet_truchon(codigo)")
-      //.groupBy('codigo')
-      .preload('comprobante_detalles', (query) => {
-        query.whereIn('id', ids_detalles)
-          .select('monto_debe', 'monto_haber', 'monto_debe_alt', 'monto_haber_alt', 'id', 'glosa');
-      })
-      .withAggregate('comprobante_detalles', (query) => {
-        query.sum('monto_debe').as('total_debe');
-      }).toQuery(), "Query");
+    
     if (comprobanteApertura.moneda_id == id_moneda) {
       cuentas.forEach((cuenta) => {
         cuenta.comprobante_detalles.forEach((detalle) => {

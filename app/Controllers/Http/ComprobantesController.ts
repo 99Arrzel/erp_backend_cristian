@@ -41,19 +41,15 @@ async function logQueryBuilder<T extends LucidModel>(query: ModelQueryBuilderCon
   return await query;
 }
 function swapMontos(accounts) {
-  /* This is not changing, so make a copy and edit hte copy */
-  accounts = accounts.map((account) => {
-    return { ...account };
-  });
+  /* Swap between alts */
   accounts.forEach((account) => {
-    const tmp = account.total_debe;
-    account.total_debe = account.total_haber;
-    account.total_haber = tmp;
-    const tmp2 = account.total_debe_alt;
-    account.total_debe_alt = account.total_haber_alt;
-    account.total_haber_alt = tmp2;
+    const temp = account.total_debe_alt;
+    account.total_debe_alt = account.total_debe;
+    account.total_debe = temp;
+    const temp2 = account.total_haber_alt;
+    account.total_haber_alt = account.total_haber;
+    account.total_haber = temp2;
   });
-  return accounts;
 
 }
 
@@ -143,7 +139,7 @@ export default class ComprobantesController {
     });
     cuentas_detalles = sumValuesToParents(cuentas_detalles);
     if (comprobanteApertura.moneda_id == id_moneda) {
-      cuentas_detalles = swapMontos(cuentas_detalles);
+      swapMontos(cuentas_detalles);
     }
     const activos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('1'));
     const pasivos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('2'));

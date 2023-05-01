@@ -12,6 +12,10 @@ export function SumDetalles({ cuentas, haber_o_debe }: { cuentas: Cuenta[], habe
   return cuentas.reduce((prev, current) =>
     current.comprobante_detalles.reduce((prev2, current2) => (current2[`monto_${haber_o_debe}`] ?? 0) + prev2, 0) + prev, 0);
 }
+export function CuentaConSuma({ cuenta, haber_o_debe }: { cuenta: Cuenta, haber_o_debe: 'haber' | 'debe'; }) {
+  return cuenta.comprobante_detalles.reduce((prev, current) => (current[`monto_${haber_o_debe}`] ?? 0) + prev, 0);
+}
+
 
 export default class ComprobantesController {
 
@@ -93,11 +97,14 @@ export default class ComprobantesController {
     const cuentas = await Cuenta.query()
       .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
       .where('empresa_id', gestion.empresa_id)
-      //.whereIn('id', ids_cuentas2)
+      .whereIn('id', ids_cuentas2)
       .orderByRaw("inet_truchon(codigo)")
       //.groupBy('codigo')
       .preload('comprobante_detalles', (query) => {
-        query.whereIn('id', ids_detalles).preload('comprobante');
+        query.whereIn('id', ids_detalles)
+          .select('monto_debe', 'monto_haber', 'monto_debe_alt', 'monto_haber_alt', 'id', 'glosa')
+          ;
+        //.preload('comprobante');
       });
     if (comprobanteApertura.moneda_id == id_moneda) {
       cuentas.forEach((cuenta) => {
@@ -107,6 +114,8 @@ export default class ComprobantesController {
         });
       });
     }
+
+
     const activos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('1'));
     const pasivos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('2'));
     const patrimonios = cuentas.filter((cuenta) => cuenta.codigo.startsWith('3'));

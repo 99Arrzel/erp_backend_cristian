@@ -46,19 +46,50 @@ export default class ComprobantesController {
     if (!comprobanteApertura) {
       return response.badRequest({ error: 'No se ha encontrado el comprobante de apertura' });
     }
-    //const ids_cuentas = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('cuenta_id').distinct();
+    const ids_cuentas = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('cuenta_id').distinct();
 
-    /* Recursive ids */
-    const ids_cuentas2 = ComprobanteDetalle.query().withRecursive('cuentas', (query) => {
-      query.select('cuenta_id').from('comprobante_detalles').where('comprobante_id', comprobanteApertura.id).unionAll((query2) => {
-        query2.select('cuenta_id').from('cuentas').innerJoin('comprobante_detalles', 'cuentas.cuenta_id', 'comprobante_detalles.cuenta_id').where('comprobante_id', comprobanteApertura.id);
-      });
-    }).select('cuenta_id').distinct();
+    /* Recursive ids of cuentas (parents)*/
+    const ids_cuentas2 = await Cuenta.query()
+      .withRecursive('padre', (query) => {
+        // The base case: Select the rows with the child IDs
+        query
+          .select('id', 'padre_id')
+          .from('cuentas')
+          .whereIn('id', ids_cuentas)
+          .union((qb) => {
+            // The recursive step: Select rows with parent IDs from the previous step
+            qb
+              .select('cuentas.id', 'cuentas.padre_id')
+              .from('cuentas')
+              .join('padre', 'cuentas.id', 'padre.padre_id');
+          });
+      })
+      .select('id')
+      .from('padre');
+
+    console.log(Cuenta.query()
+      .withRecursive('padre', (query) => {
+        // The base case: Select the rows with the child IDs
+        query
+          .select('id', 'padre_id')
+          .from('cuentas')
+          .whereIn('id', ids_cuentas)
+          .union((qb) => {
+            // The recursive step: Select rows with parent IDs from the previous step
+            qb
+              .select('cuentas.id', 'cuentas.padre_id')
+              .from('cuentas')
+              .join('padre', 'cuentas.id', 'padre.padre_id');
+          });
+      })
+      .select('id')
+      .from('padre').toQuery());
+    console.log(ids_cuentas2);
 
     const ids_detalles = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct();
     const cuentas = await Cuenta.query()
       .where('empresa_id', gestion.empresa_id)
-      .whereIn('id', ids_cuentas2)
+      //.whereIn('id', ids_cuentas2)
       .orderByRaw("inet_truchon(codigo)")
       //.groupBy('codigo')
       .preload('comprobante_detalles', (query) => {

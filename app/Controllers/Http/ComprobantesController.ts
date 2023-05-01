@@ -8,6 +8,22 @@ import ComprobanteDetalle from 'App/Models/ComprobanteDetalle';
 import Database from '@ioc:Adonis/Lucid/Database';
 
 
+
+
+/* debe: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_debe ?? 0) + prev, 0),
+  debe_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_debe_alt ?? 0) + prev, 0),
+    haber: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber ?? 0) + prev, 0),
+      haber_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber_alt ?? 0) + prev, 0) */
+export function SumDetallesIndividual({ cuenta }: { cuenta: Cuenta; }) {
+  return {
+    ...cuenta,
+    debe: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_debe ?? 0) + prev, 0),
+    debe_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_debe_alt ?? 0) + prev, 0),
+    haber: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber ?? 0) + prev, 0),
+    haber_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber_alt ?? 0) + prev, 0)
+  };
+}
+
 export function SumDetalles({ cuentas, haber_o_debe }: { cuentas: Cuenta[], haber_o_debe: 'haber' | 'debe'; }) {
   return cuentas.reduce((prev, current) =>
     current.comprobante_detalles.reduce((prev2, current2) => (current2[`monto_${haber_o_debe}`] ?? 0) + prev2, 0) + prev, 0);
@@ -102,7 +118,6 @@ export default class ComprobantesController {
         query.whereIn('id', ids_detalles)
           .select('monto_debe', 'monto_haber', 'monto_debe_alt', 'monto_haber_alt', 'id', 'glosa');
       });
-
     if (comprobanteApertura.moneda_id == id_moneda) {
       cuentas.forEach((cuenta) => {
         cuenta.comprobante_detalles.forEach((detalle) => {
@@ -111,21 +126,12 @@ export default class ComprobantesController {
         });
       });
     }
-    const con_sumas = cuentas.map((cuenta) => {
-      return {
-        ...cuenta,
-        debe: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_debe ?? 0) + prev, 0),
-        debe_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_debe_alt ?? 0) + prev, 0),
-        haber: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber ?? 0) + prev, 0),
-        haber_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber_alt ?? 0) + prev, 0)
-      };
-    });
-    console.log(con_sumas, "con sumas");
-    const activos = con_sumas.filter((cuenta) => cuenta.codigo.startsWith('1'));
-    const pasivos = con_sumas.filter((cuenta) => cuenta.codigo.startsWith('2'));
-    const patrimonios = con_sumas.filter((cuenta) => cuenta.codigo.startsWith('3'));
-    const resto = con_sumas.filter((cuenta) => !cuenta.codigo.startsWith('1') && !cuenta.codigo.startsWith('2') && !cuenta.codigo.startsWith('3'));
 
+
+    const activos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('1')).map((cuenta) => SumDetallesIndividual({ cuenta }));
+    const pasivos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('2')).map((cuenta) => SumDetallesIndividual({ cuenta }));
+    const patrimonios = cuentas.filter((cuenta) => cuenta.codigo.startsWith('3')).map((cuenta) => SumDetallesIndividual({ cuenta }));
+    const resto = cuentas.filter((cuenta) => !cuenta.codigo.startsWith('1') && !cuenta.codigo.startsWith('2') && !cuenta.codigo.startsWith('3')).map((cuenta) => SumDetallesIndividual({ cuenta }));
     return response.json({
       comprobante: comprobanteApertura, detalles: {
         activos: {

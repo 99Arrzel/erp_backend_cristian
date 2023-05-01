@@ -5,6 +5,7 @@ import Periodo from 'App/Models/Periodo';
 import Gestion from 'App/Models/Gestion';
 import Cuenta from 'App/Models/Cuenta';
 import ComprobanteDetalle from 'App/Models/ComprobanteDetalle';
+import Database from '@ioc:Adonis/Lucid/Database';
 
 
 export function SumDetalles({ cuentas, haber_o_debe }: { cuentas: Cuenta[], haber_o_debe: 'haber' | 'debe'; }) {
@@ -49,7 +50,7 @@ export default class ComprobantesController {
     const ids_cuentas = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('cuenta_id').distinct();
 
     /* Recursive ids of cuentas (parents)*/
-    const ids_cuentas2 = await Cuenta.query()
+    const ids_cuentas2 = await Database.query()
       .withRecursive('padre', (query) => {
         // The base case: Select the rows with the child IDs
         query
@@ -84,7 +85,7 @@ export default class ComprobantesController {
       })
       .select('id')
       .from('padre').toQuery());
-    console.log(ids_cuentas2);
+    console.log(ids_cuentas2, "le any");
 
     const ids_detalles = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct();
     const cuentas = await Cuenta.query()

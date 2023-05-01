@@ -71,6 +71,35 @@ export default class ComprobantesController {
       })
       .select('id')
       .from('padre')).map((v) => v.id);
+    /* ========= */
+
+    const test = await logQueryBuilder(Cuenta.query()
+      .withRecursive('cuentas', (query) => {
+        query.select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
+          .where('empresa_id', gestion.empresa_id)
+          .whereIn('id', ids_cuentas2)
+          .preload('comprobante_detalles', (query) => {
+            query.where('comprobante_id', comprobanteApertura.id)
+              .select('monto_debe', 'monto_haber', 'monto_debe_alt', 'monto_haber_alt', 'id', 'glosa');
+          })
+          .withAggregate('comprobante_detalles', (query) => {
+            query.sum('monto_debe').as('total_debe');
+          })
+          .withAggregate('comprobante_detalles', (query) => {
+            query.sum('monto_haber').as('total_haber');
+          })
+          /* Sum this aggregates to parents */
+          .unionAll((qb) => {
+            qb.select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo')
+              .from('cuentas')
+              .join('cuentas as c', 'cuentas.padre_id', 'c.id');
+          })
+          .orderByRaw("inet_truchon(codigo)");
+      }));
+    console.log(test, "Res test");
+    /* ========= */
+
+
     const ids_detalles = (await ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct()).map((v) => v.id);
     const cuentas = await logQueryBuilder(Cuenta.query()
       .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
@@ -95,6 +124,7 @@ export default class ComprobantesController {
     }
     const cuentas_detalles = cuentas.map((cuenta) => {
       return {
+        ...cuenta.$extras,
         ...cuenta.toObject(),
         haber: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_debe ?? 0), 0),
         debe: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_haber ?? 0), 0),

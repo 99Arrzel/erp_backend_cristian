@@ -83,7 +83,7 @@ export default class CuentasController {
       padre_id: request.input("padre_id"),
       nivel: nivel,
       codigo: codigo,
-      tipo: nivel == empresa.niveles ? "DETALLE" : "GLOBAL",
+      tipo: (nivel + 1) >= empresa.niveles ? "DETALLE" : "GLOBAL",
       usuario_id: auth.user?.id,
     });
     return response.json(cuenta);

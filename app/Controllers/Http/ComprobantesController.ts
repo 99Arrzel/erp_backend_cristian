@@ -98,12 +98,10 @@ export default class ComprobantesController {
         });
       });
     }
-
-
-    const activos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('1')).map((cuenta) => SumDetallesIndividual({ cuenta }));
-    const pasivos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('2')).map((cuenta) => SumDetallesIndividual({ cuenta }));
-    const patrimonios = cuentas.filter((cuenta) => cuenta.codigo.startsWith('3')).map((cuenta) => SumDetallesIndividual({ cuenta }));
-    const resto = cuentas.filter((cuenta) => !cuenta.codigo.startsWith('1') && !cuenta.codigo.startsWith('2') && !cuenta.codigo.startsWith('3')).map((cuenta) => SumDetallesIndividual({ cuenta }));
+    const activos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('1'));
+    const pasivos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('2'));
+    const patrimonios = cuentas.filter((cuenta) => cuenta.codigo.startsWith('3'));
+    const resto = cuentas.filter((cuenta) => !cuenta.codigo.startsWith('1') && !cuenta.codigo.startsWith('2') && !cuenta.codigo.startsWith('3'));
     return response.json({
       comprobante: comprobanteApertura, detalles: {
         activos: {

@@ -77,7 +77,7 @@ export default class ComprobantesController {
       .withRecursive('padre', (query) => {
         // The base case: Select the rows with the child IDs
         query
-          .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', 'comprobante_detalles.monto_debe as total_debe')
+          .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', 'detalle_comprobantes.monto_debe as total_debe')
           .from('cuentas')
           .leftJoin('detalle_comprobantes', 'cuentas.id', 'detalle_comprobantes.cuenta_id')
           .whereIn('cuentas.id', ids_cuentas)

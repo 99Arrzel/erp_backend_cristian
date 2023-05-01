@@ -189,7 +189,7 @@ export default class ComprobantesController {
       }
     }
     /* Validacion de cuenta último nivel */
-    const cuentasVal = await Cuenta.query().where('empresa_id', request.input('empresa_id')).whereIn('id', detalles.map((detalle) => detalle.cuenta_id)).where('tipo', "!=", "DETALLE");
+    const cuentasVal = await Cuenta.query().where('empresa_id', request.input('empresa_id')).whereIn('id', detalles.map((detalle) => detalle.cuenta_id)).where('tipo', "DETALLE");
     if (cuentasVal.length !== detalles.length) {
       return response.status(400).json({ message: "Alguna cuenta no es de último nivel, chequea eso" });
     }

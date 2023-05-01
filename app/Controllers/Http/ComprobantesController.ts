@@ -45,7 +45,7 @@ export default class ComprobantesController {
       .where('empresa_id', gestion.empresa_id)
       .whereIn('id', ids_cuentas)
       .orderByRaw("inet_truchon(codigo)")
-      .groupBy('codigo')
+      //.groupBy('codigo')
       .preload('comprobante_detalles', (query) => {
         query.whereIn('id', ids_detalles).preload('comprobante');
       });

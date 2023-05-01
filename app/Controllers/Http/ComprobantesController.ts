@@ -10,12 +10,35 @@ import { LucidModel, ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm';
 
 
 
+/* Esta funcion agarra una lista de cuentas, y las suma hacia sus padres. */
+function sumValuesToParents(accounts) {
+  const accountsMap = accounts.reduce((acc, account) => {
+    acc[account.id] = account;
+    return acc;
+  }, {});
+
+  function propagateToParent(account) {
+    if (account.padre_id) {
+      const parent = accountsMap[account.padre_id];
+
+      parent.total_debe = (parent.total_debe || 0) + (account.total_debe || 0);
+      parent.total_haber = (parent.total_haber || 0) + (account.total_haber || 0);
+      parent.total_debe_alt = (parent.total_debe_alt || 0) + (account.total_debe_alt || 0);
+      parent.total_haber_alt = (parent.total_haber_alt || 0) + (account.total_haber_alt || 0);
+    }
+  }
+  for (let i = accounts.length - 1; i >= 0; i--) {
+    propagateToParent(accounts[i]);
+  }
+  return accounts;
+}
+
+
 async function logQueryBuilder<T extends LucidModel>(query: ModelQueryBuilderContract<T>) {
   console.log(query.toSQL().sql);
   console.log(query.toQuery());
   /* Don't return promise */
   return await query;
-
 }
 
 export default class ComprobantesController {
@@ -71,48 +94,30 @@ export default class ComprobantesController {
       })
       .select('id')
       .from('padre')).map((v) => v.id);
-    /* ========= */
-
-    const test = await Database.query()
-      .withRecursive('padre', (query) => {
-        // The base case: Select the rows with the child IDs
-        query
-          .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', Database.raw('COALESCE(SUM(detalle_comprobantes.monto_debe), 0) as total_debe'))
-          .from('cuentas')
-          .leftJoin('detalle_comprobantes', 'cuentas.id', 'detalle_comprobantes.cuenta_id')
-          .whereIn('cuentas.id', ids_cuentas)
-          .groupBy('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', 'detalle_comprobantes.cuenta_id')
-          .unionAll((qb) => {
-            // The recursive step: Select rows with parent IDs from the previous step
-            qb
-              .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', 'padre.total_debe')
-              .from('cuentas')
-              .join('padre', 'cuentas.id', 'padre.padre_id');
-          });
-      })
-      .select('padre.id', 'padre.codigo', 'padre.nombre', 'padre.padre_id', 'padre.nivel', 'padre.tipo', 'padre.empresa_id', Database.raw('SUM(padre.total_debe) as total_debe'))
-      .from('padre')
-      .where('padre.empresa_id', gestion.empresa_id)
-      .groupBy('padre.id', 'padre.codigo', 'padre.nombre', 'padre.padre_id', 'padre.nivel', 'padre.tipo', 'padre.empresa_id')
-      .orderByRaw("inet_truchon(padre.codigo)");
-    console.log(test, "Res test");
-    /* ========= */
-
-
     const ids_detalles = (await ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct()).map((v) => v.id);
     const cuentas = await logQueryBuilder(Cuenta.query()
       .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
       .where('empresa_id', gestion.empresa_id)
       .whereIn('id', ids_cuentas2)
       .orderByRaw("inet_truchon(codigo)")
-      //.groupBy('codigo')
-      .preload('comprobante_detalles', (query) => {
-        query.whereIn('id', ids_detalles)
-          .select('monto_debe', 'monto_haber', 'monto_debe_alt', 'monto_haber_alt', 'id', 'glosa');
+      .withAggregate('comprobante_detalles', (query) => {
+        query.whereIn('id', ids_detalles);
+        query.sum('monto_debe').as('total_debe');
       })
       .withAggregate('comprobante_detalles', (query) => {
-        query.sum('monto_debe').as('total_debe');
-      }));
+        query.whereIn('id', ids_detalles);
+        query.sum('monto_haber').as('total_haber');
+      })
+      .withAggregate('comprobante_detalles', (query) => {
+        query.whereIn('id', ids_detalles);
+        query.sum('monto_debe_alt').as('total_debe_alt');
+      })
+      .withAggregate('comprobante_detalles', (query) => {
+        query.whereIn('id', ids_detalles);
+        query.sum('monto_haber_alt').as('total_haber_alt');
+      })
+    );
+
     if (comprobanteApertura.moneda_id == id_moneda) {
       cuentas.forEach((cuenta) => {
         cuenta.comprobante_detalles.forEach((detalle) => {
@@ -121,24 +126,17 @@ export default class ComprobantesController {
         });
       });
     }
-    const cuentas_detalles = cuentas.map((cuenta) => {
+    let cuentas_detalles = cuentas.map((cuenta) => {
       return {
         ...cuenta.$extras,
-        ...cuenta.toObject(),
-        haber: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_debe ?? 0), 0),
-        debe: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_haber ?? 0), 0),
-        haber_alt: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_debe_alt ?? 0), 0),
-        debe_alt: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_haber_alt ?? 0), 0),
+        ...cuenta.toJSON() as Cuenta,
       };
     });
-
-
-    console.log(cuentas_detalles, "Detalles");
-
-    const activos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('1'));
-    const pasivos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('2'));
-    const patrimonios = cuentas.filter((cuenta) => cuenta.codigo.startsWith('3'));
-    const resto = cuentas.filter((cuenta) => !cuenta.codigo.startsWith('1') && !cuenta.codigo.startsWith('2') && !cuenta.codigo.startsWith('3'));
+    cuentas_detalles = sumValuesToParents(cuentas_detalles);
+    const activos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('1'));
+    const pasivos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('2'));
+    const patrimonios = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('3'));
+    const resto = cuentas_detalles.filter((cuenta) => !cuenta.codigo.startsWith('1') && !cuenta.codigo.startsWith('2') && !cuenta.codigo.startsWith('3'));
     return response.json({
       comprobante: comprobanteApertura, detalles: {
         activos: {

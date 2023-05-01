@@ -8,7 +8,7 @@ import ComprobanteDetalle from 'App/Models/ComprobanteDetalle';
 
 
 export function SumDetalles({ cuentas, haber_o_debe }: { cuentas: Cuenta[], haber_o_debe: 'haber' | 'debe'; }) {
-  cuentas.reduce((prev, current) =>
+  return cuentas.reduce((prev, current) =>
     current.comprobante_detalles.reduce((prev2, current2) => (current2[`monto_${haber_o_debe}`] ?? 0) + prev2, 0) + prev, 0);
 }
 

@@ -40,6 +40,17 @@ async function logQueryBuilder<T extends LucidModel>(query: ModelQueryBuilderCon
   /* Don't return promise */
   return await query;
 }
+function swapMontos(accounts) {
+  accounts.forEach((account) => {
+    const tmp = account.total_debe;
+    account.total_debe = account.total_haber;
+    account.total_haber = tmp;
+    const tmp2 = account.total_debe_alt;
+    account.total_debe_alt = account.total_haber_alt;
+    account.total_haber_alt = tmp2;
+  });
+
+}
 
 export default class ComprobantesController {
 
@@ -119,12 +130,7 @@ export default class ComprobantesController {
     );
 
     if (comprobanteApertura.moneda_id == id_moneda) {
-      cuentas.forEach((cuenta) => {
-        cuenta.comprobante_detalles.forEach((detalle) => {
-          detalle.monto_debe = detalle.monto_debe_alt;
-          detalle.monto_haber = detalle.monto_haber_alt;
-        });
-      });
+      swapMontos(cuentas);
     }
     let cuentas_detalles = cuentas.map((cuenta) => {
       return {

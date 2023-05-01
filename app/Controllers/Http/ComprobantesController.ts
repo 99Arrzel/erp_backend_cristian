@@ -5,6 +5,13 @@ import Periodo from 'App/Models/Periodo';
 import Gestion from 'App/Models/Gestion';
 import Cuenta from 'App/Models/Cuenta';
 import ComprobanteDetalle from 'App/Models/ComprobanteDetalle';
+
+
+export function SumDetalles({ cuentas, haber_o_debe }: { cuentas: Cuenta[], haber_o_debe: 'haber' | 'debe'; }) {
+  cuentas.reduce((prev, current) =>
+    current.comprobante_detalles.reduce((prev2, current2) => (current2[`monto_${haber_o_debe}`] ?? 0) + prev2, 0) + prev, 0);
+}
+
 export default class ComprobantesController {
 
   public async unComprobante({ request, response, auth }: HttpContextContract) {
@@ -57,9 +64,31 @@ export default class ComprobantesController {
         });
       });
     }
-    return response.json({ comprobante: comprobanteApertura, detalles: cuentas });
-  }
+    const activos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('1'));
+    const pasivos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('2'));
+    const patrimonios = cuentas.filter((cuenta) => cuenta.codigo.startsWith('3'));
+    const resto = cuentas.filter((cuenta) => !cuenta.codigo.startsWith('1') && !cuenta.codigo.startsWith('2') && !cuenta.codigo.startsWith('3'));
 
+    return response.json({
+      comprobante: comprobanteApertura, detalles: {
+        activos: {
+          cuentas: activos,
+          total_debe: SumDetalles({ cuentas: activos, haber_o_debe: 'debe' }),
+          total_haber: SumDetalles({ cuentas: activos, haber_o_debe: 'haber' })
+        },
+        pasivo_y_patrimonio: {
+          cuentas: [...pasivos, ...patrimonios],
+          total_debe: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'debe' }),
+          total_haber: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'haber' })
+        },
+        resto: {
+          cuentas: resto,
+          total_debe: SumDetalles({ cuentas: resto, haber_o_debe: 'debe' }),
+          total_haber: SumDetalles({ cuentas: resto, haber_o_debe: 'haber' })
+        }
+      }
+    });
+  }
   public async listByEmpresa({ request, response, auth }: HttpContextContract) {
     const { empresa_id } = request.all();
     const comprobantes = await Comprobante.query().where('empresa_id', empresa_id).where('usuario_id', auth.user?.id as number);

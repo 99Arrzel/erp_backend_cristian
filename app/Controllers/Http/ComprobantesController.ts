@@ -54,7 +54,31 @@ function swapMontos(accounts) {
   });
 
 }
+function calcularTotal(comprobante: Comprobante[], debe_o_haber: string) {
+  let total = 0;
+  comprobante.forEach((comprobante) => {
+    comprobante.comprobante_detalles.forEach((detalle) => {
+      if (debe_o_haber === 'debe') {
+        total += detalle.monto_debe ?? 0;
+      } else if (debe_o_haber === 'haber') {
+        total += detalle.monto_haber ?? 0;
+      }
+    });
+  });
+  return total;
+}
+function swapMontosComprobante(comprobante: Comprobante) {
 
+  comprobante.comprobante_detalles.forEach((detalle) => {
+    const temp = detalle.monto_debe_alt;
+    detalle.monto_debe_alt = detalle.monto_debe;
+    detalle.monto_debe = temp;
+    const temp2 = detalle.monto_haber_alt;
+    detalle.monto_haber_alt = detalle.monto_haber;
+    detalle.monto_haber = temp2;
+  });
+
+}
 export default class ComprobantesController {
 
   public async unComprobante({ request, response, auth }: HttpContextContract) {
@@ -73,7 +97,56 @@ export default class ComprobantesController {
     }
     return response.json(comprobante);
   }
+  public async ComprobanteLibroDiario({ request, response, auth }: HttpContextContract) {
 
+    let fecha_inicio = new Date();
+    let fecha_fin = new Date();
+    const id_periodo = request.input('id_periodo');
+    const id_moneda = request.input('id_moneda');
+    const id_gestion = request.input('id_gestion'); //id, opcional
+    if (!id_moneda) {
+      return response.badRequest({ error: 'No se ha enviado el id de la moneda' });
+    }
+    if (!id_periodo) {
+      return response.badRequest({ error: 'No se ha enviado el id del periodo o gestion' });
+    }
+
+    const periodo = await Periodo.findOrFail(id_periodo);
+    if (id_gestion) { //obtenemos la gestion
+      const gestion = await Gestion.findOrFail(id_gestion);
+      fecha_inicio = new Date(gestion.fecha_inicio.toString());
+      fecha_fin = new Date(gestion.fecha_fin.toString());
+    } else { //Solo del periodo seleccionado
+      fecha_inicio = new Date(periodo.fecha_inicio.toString());
+      fecha_fin = new Date(periodo.fecha_fin.toString());
+    }
+    const comprobantes = await Comprobante.query()
+      .where('estado', '!=', 'Anulado')
+      .where('usuario_id', auth.user?.id as number)
+      .whereBetween('fecha', [fecha_inicio, fecha_fin])
+      .preload('comprobante_detalles', (query) => {
+        query.preload('cuenta');
+      });
+    const gPeriodo = await Gestion.findOrFail(periodo.gestion_id);
+    const empresa = await Empresa.findOrFail(gPeriodo.empresa_id);
+    const moneda = await Moneda.findOrFail(id_moneda);
+    comprobantes.forEach((comprobante) => {
+      if (comprobante.moneda_id == id_moneda) { //Si es igual a la que se guarda (que es la alternativa), cambiamos
+        swapMontosComprobante(comprobante);
+      }
+    });
+    return response.json({
+      por_gestion_o_periodo: id_gestion ? 'gestion' : 'periodo',
+      comprobantes,
+      empresa,
+      moneda,
+      periodo,
+      gestion: gPeriodo,
+      usuario: auth.user,
+      total_debe: calcularTotal(comprobantes, 'debe'),
+      total_haber: calcularTotal(comprobantes, 'haber'),
+    });
+  }
   public async ComprobanteAperturaGestion({ request, response, auth }: HttpContextContract) {
     const id_gestion = request.input('id_gestion');
     const id_moneda = request.input('id_moneda');

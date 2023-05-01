@@ -99,23 +99,22 @@ export default class ComprobantesController {
       .where('empresa_id', gestion.empresa_id)
       .whereIn('id', ids_cuentas3)
       .orderByRaw("inet_truchon(codigo)")
-      //.groupBy('codigo')
-      .preload('comprobante_detalles', (query) => {
-        query.whereIn('id', ids_detalles)
-          .select('monto_debe', 'monto_haber', 'monto_debe_alt', 'monto_haber_alt', 'id', 'glosa')
-          ;
-        //.preload('comprobante');
+      .withAggregate('comprobante_detalles', (query) => {
+        query.whereIn('id', ids_detalles);
+        query.sum('monto_debe').as('total_debe');
+        query.sum('monto_haber').as('total_haber');
+        query.sum('monto_debe_alt').as('total_debe_alt');
+        query.sum('monto_haber_alt').as('total_haber_alt');
       });
-    if (comprobanteApertura.moneda_id == id_moneda) {
+    /* if (comprobanteApertura.moneda_id == id_moneda) {
       cuentas.forEach((cuenta) => {
+
         cuenta.comprobante_detalles.forEach((detalle) => {
           detalle.monto_debe = detalle.monto_debe_alt;
           detalle.monto_haber = detalle.monto_haber_alt;
         });
       });
-    }
-
-
+    } */
     const activos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('1'));
     const pasivos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('2'));
     const patrimonios = cuentas.filter((cuenta) => cuenta.codigo.startsWith('3'));

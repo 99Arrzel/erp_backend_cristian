@@ -46,7 +46,7 @@ export default class ComprobantesController {
     if (!comprobanteApertura) {
       return response.badRequest({ error: 'No se ha encontrado el comprobante de apertura' });
     }
-    const ids_cuentas = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('cuenta_id').distinct();
+    //const ids_cuentas = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('cuenta_id').distinct();
 
     /* Recursive ids */
     const ids_cuentas2 = ComprobanteDetalle.query().withRecursive('cuentas', (query) => {

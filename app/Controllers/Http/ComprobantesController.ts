@@ -91,6 +91,7 @@ export default class ComprobantesController {
 
     const ids_detalles = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct();
     const cuentas = await Cuenta.query()
+      .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
       .where('empresa_id', gestion.empresa_id)
       //.whereIn('id', ids_cuentas2)
       .orderByRaw("inet_truchon(codigo)")

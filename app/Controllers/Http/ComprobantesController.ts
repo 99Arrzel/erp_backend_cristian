@@ -6,7 +6,17 @@ import Gestion from 'App/Models/Gestion';
 import Cuenta from 'App/Models/Cuenta';
 import ComprobanteDetalle from 'App/Models/ComprobanteDetalle';
 import Database from '@ioc:Adonis/Lucid/Database';
+import { LucidModel, ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm';
 
+
+
+async function logQueryBuilder<T extends LucidModel>(query: ModelQueryBuilderContract<T>) {
+  console.log(query.toSQL().sql);
+  console.log(query.toQuery());
+  /* Don't return promise */
+  return await query;
+
+}
 
 export default class ComprobantesController {
 
@@ -62,7 +72,7 @@ export default class ComprobantesController {
       .select('id')
       .from('padre')).map((v) => v.id);
     const ids_detalles = (await ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct()).map((v) => v.id);
-    const cuentas = await Cuenta.query()
+    const cuentas = await logQueryBuilder(Cuenta.query()
       .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo', 'total_debe')
       .where('empresa_id', gestion.empresa_id)
       .whereIn('id', ids_cuentas2)
@@ -74,9 +84,7 @@ export default class ComprobantesController {
       })
       .withAggregate('comprobante_detalles', (query) => {
         query.sum('monto_debe').as('total_debe');
-      });
-
-    
+      }));
     if (comprobanteApertura.moneda_id == id_moneda) {
       cuentas.forEach((cuenta) => {
         cuenta.comprobante_detalles.forEach((detalle) => {

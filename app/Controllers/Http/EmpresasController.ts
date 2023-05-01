@@ -188,7 +188,9 @@ export default class EmpresasController {
         ).preload('moneda');
 
       })
-      .preload('cuentas')
+      .preload('cuentas', (query) => {
+        query.orderByRaw('inet_truchon(codigo)');
+      })
       .first();
 
 

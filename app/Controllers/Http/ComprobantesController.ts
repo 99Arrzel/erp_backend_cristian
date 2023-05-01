@@ -60,10 +60,9 @@ export default class ComprobantesController {
     if (!comprobanteApertura) {
       return response.badRequest({ error: 'No se ha encontrado el comprobante de apertura' });
     }
-    const ids_cuentas = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('cuenta_id').distinct();
-
+    const ids_cuentas = (await ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('cuenta_id').distinct()).map((v) => v.cuenta_id);;
     /* Recursive ids of cuentas (parents)*/
-    const ids_cuentas2 = await Database.query()
+    const ids_cuentas2 = (await Database.query()
       .withRecursive('padre', (query) => {
         // The base case: Select the rows with the child IDs
         query
@@ -79,34 +78,12 @@ export default class ComprobantesController {
           });
       })
       .select('id')
-      .from('padre');
-    //Esto va a tirar un array de {id: number} y necesitamos un array de number
-    const ids_cuentas3: number[] = ids_cuentas2.map((cuenta) => cuenta.id);
-
-    console.log(Cuenta.query()
-      .withRecursive('padre', (query) => {
-        // The base case: Select the rows with the child IDs
-        query
-          .select('id', 'padre_id')
-          .from('cuentas')
-          .whereIn('id', ids_cuentas3)
-          .union((qb) => {
-            // The recursive step: Select rows with parent IDs from the previous step
-            qb
-              .select('cuentas.id', 'cuentas.padre_id')
-              .from('cuentas')
-              .join('padre', 'cuentas.id', 'padre.padre_id');
-          });
-      })
-      .select('id')
-      .from('padre').toQuery());
-    console.log(ids_cuentas2, "le any");
-
-    const ids_detalles = ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct();
+      .from('padre')).map((v) => v.id);
+    const ids_detalles = (await ComprobanteDetalle.query().where('comprobante_id', comprobanteApertura.id).select('id').distinct()).map((v) => v.id);
     const cuentas = await Cuenta.query()
       .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
       .where('empresa_id', gestion.empresa_id)
-      .whereIn('id', ids_cuentas3)
+      .whereIn('id', ids_cuentas2)
       .orderByRaw("inet_truchon(codigo)")
       //.groupBy('codigo')
       .preload('comprobante_detalles', (query) => {

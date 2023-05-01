@@ -81,7 +81,7 @@ export default class ComprobantesController {
           .from('cuentas')
           .leftJoin('detalle_comprobantes', 'cuentas.id', 'detalle_comprobantes.cuenta_id')
           .whereIn('cuentas.id', ids_cuentas)
-          .groupBy('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id')
+          .groupBy('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', 'detalle_comprobantes.cuenta_id')
           .unionAll((qb) => {
             // The recursive step: Select rows with parent IDs from the previous step
             qb

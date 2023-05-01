@@ -120,6 +120,7 @@ export default class ComprobantesController {
         haber_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber_alt ?? 0) + prev, 0)
       };
     });
+    console.log(con_sumas, "con sumas");
     const activos = con_sumas.filter((cuenta) => cuenta.codigo.startsWith('1'));
     const pasivos = con_sumas.filter((cuenta) => cuenta.codigo.startsWith('2'));
     const patrimonios = con_sumas.filter((cuenta) => cuenta.codigo.startsWith('3'));

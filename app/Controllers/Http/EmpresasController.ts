@@ -188,10 +188,7 @@ export default class EmpresasController {
         ).preload('moneda');
 
       })
-      .preload('cuentas', (query) => {
-        query.where('tipo', "GLOBAL");
-      }
-      )
+      .preload('cuentas')
       .first();
 
 

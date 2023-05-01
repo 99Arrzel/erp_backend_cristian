@@ -7,6 +7,8 @@ import Cuenta from 'App/Models/Cuenta';
 import ComprobanteDetalle from 'App/Models/ComprobanteDetalle';
 import Database from '@ioc:Adonis/Lucid/Database';
 import { LucidModel, ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm';
+import Empresa from 'App/Models/Empresa';
+import Moneda from 'App/Models/Moneda';
 
 
 
@@ -84,6 +86,8 @@ export default class ComprobantesController {
     const comprobanteApertura = await Comprobante.query().where('tipo', 'Apertura').where('usuario_id', auth.user?.id as number).where('empresa_id', gestion.empresa_id)
       .whereBetween('fecha', [fecha_inicio, fecha_fin])
       .first();
+    const empresa = await Empresa.findOrFail(gestion.empresa_id);
+    const moneda = await Moneda.findOrFail(id_moneda);
     if (!comprobanteApertura) {
       return response.badRequest({ error: 'No se ha encontrado el comprobante de apertura' });
     }
@@ -146,7 +150,8 @@ export default class ComprobantesController {
     const patrimonios = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('3'));
     const resto = cuentas_detalles.filter((cuenta) => !cuenta.codigo.startsWith('1') && !cuenta.codigo.startsWith('2') && !cuenta.codigo.startsWith('3'));
     return response.json({
-      comprobante: comprobanteApertura, detalles: {
+      comprobante: comprobanteApertura,
+      detalles: {
         activos: {
           cuentas: activos,
         },
@@ -156,7 +161,9 @@ export default class ComprobantesController {
         resto: {
           cuentas: resto,
         }
-      }
+      },
+      empresa,
+      moneda
     });
   }
   public async listByEmpresa({ request, response, auth }: HttpContextContract) {

@@ -97,7 +97,7 @@ export default class ComprobantesController {
     const cuentas = await Cuenta.query()
       .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
       .where('empresa_id', gestion.empresa_id)
-      .whereIn('id', ids_cuentas2)
+      .whereIn('id', ids_cuentas3)
       .orderByRaw("inet_truchon(codigo)")
       //.groupBy('codigo')
       .preload('comprobante_detalles', (query) => {

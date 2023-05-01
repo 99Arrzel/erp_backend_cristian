@@ -82,18 +82,18 @@ export default class ComprobantesController {
           .leftJoin('detalle_comprobantes', 'cuentas.id', 'detalle_comprobantes.cuenta_id')
           .whereIn('cuentas.id', ids_cuentas)
           .groupBy('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id')
-          .union((qb) => {
-            // The recursive step: Select rows with parent IDs from the previous step and sum the monto_debe from the child accounts
+          .unionAll((qb) => {
+            // The recursive step: Select rows with parent IDs from the previous step
             qb
-              .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', Database.raw('COALESCE(SUM(padre.total_debe), 0) as total_debe'))
+              .select('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id', 'padre.total_debe')
               .from('cuentas')
-              .join('padre', 'cuentas.id', 'padre.padre_id')
-              .groupBy('cuentas.id', 'cuentas.codigo', 'cuentas.nombre', 'cuentas.padre_id', 'cuentas.nivel', 'cuentas.tipo', 'cuentas.empresa_id');
+              .join('padre', 'cuentas.id', 'padre.padre_id');
           });
       })
-      .select('padre.id', 'padre.codigo', 'padre.nombre', 'padre.padre_id', 'padre.nivel', 'padre.tipo', 'padre.empresa_id', 'padre.total_debe')
+      .select('padre.id', 'padre.codigo', 'padre.nombre', 'padre.padre_id', 'padre.nivel', 'padre.tipo', 'padre.empresa_id', Database.raw('SUM(padre.total_debe) as total_debe'))
       .from('padre')
       .where('padre.empresa_id', gestion.empresa_id)
+      .groupBy('padre.id', 'padre.codigo', 'padre.nombre', 'padre.padre_id', 'padre.nivel', 'padre.tipo', 'padre.empresa_id')
       .orderByRaw("inet_truchon(padre.codigo)");
     console.log(test, "Res test");
     /* ========= */

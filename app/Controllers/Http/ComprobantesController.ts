@@ -95,13 +95,15 @@ export default class ComprobantesController {
     }
     const cuentas_detalles = cuentas.map((cuenta) => {
       return {
-        ...cuenta,
+        ...cuenta.toObject(),
         haber: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_debe ?? 0), 0),
         debe: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_haber ?? 0), 0),
         haber_alt: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_debe_alt ?? 0), 0),
         debe_alt: cuenta.comprobante_detalles.reduce((acc, curr) => acc + (curr.monto_haber_alt ?? 0), 0),
       };
     });
+
+
     console.log(cuentas_detalles, "Detalles");
 
     const activos = cuentas.filter((cuenta) => cuenta.codigo.startsWith('1'));

@@ -163,7 +163,7 @@ export default class ComprobantesController {
         return response.status(400).json({ message: "Haber debe ser mayor a cero" });
       }
     });
-    const fechaVerificar = request.input('fecha');
+    const fechaVerificar = new Date(request.input('fecha'));
     const periodo = await Periodo.query().where('fecha_inicio', '<=', fechaVerificar).where('fecha_fin', '>=', fechaVerificar).where('estado', true)
       /* Doesn't have empresa_id, but gestion_id has empresa_id */
       .preload('gestion', (gestionQuery) => {
@@ -180,7 +180,10 @@ export default class ComprobantesController {
       if (!gestion) {
         return response.status(400).json({ message: "No existe gestión" });
       }
-      const comprobante = await Comprobante.query().where('empresa_id', request.input('empresa_id')).where('tipo', 'Apertura').where('estado', 'Abierto').where('fecha', '>=', gestion.fecha_inicio.toString()).where('fecha', '<=', gestion.fecha_fin.toString()).first();
+      const fecha_inicio_gestion = new Date(gestion.fecha_inicio.toString());
+      const fecha_fin_gestion = new Date(gestion.fecha_fin.toString());
+
+      const comprobante = await Comprobante.query().where('empresa_id', request.input('empresa_id')).where('tipo', 'Apertura').where('estado', 'Abierto').where('fecha', '>=', fecha_inicio_gestion).where('fecha', '<=', fecha_fin_gestion).first();
       if (comprobante) {
         return response.status(400).json({ message: "Ya existe un comprobante de apertura abierto para esta gestion(Fecha) :" + comprobante.serie });
       }

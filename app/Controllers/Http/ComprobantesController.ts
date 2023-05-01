@@ -8,24 +8,6 @@ import ComprobanteDetalle from 'App/Models/ComprobanteDetalle';
 import Database from '@ioc:Adonis/Lucid/Database';
 
 
-
-
-/* debe: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_debe ?? 0) + prev, 0),
-  debe_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_debe_alt ?? 0) + prev, 0),
-    haber: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber ?? 0) + prev, 0),
-      haber_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber_alt ?? 0) + prev, 0) */
-export function SumDetallesIndividual({ cuenta }: { cuenta: Cuenta; }) {
-  return {
-    ...cuenta,
-    debe: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_debe ?? 0) + prev, 0),
-    debe_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_debe_alt ?? 0) + prev, 0),
-    haber: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber ?? 0) + prev, 0),
-    haber_alt: cuenta.comprobante_detalles.reduce((prev, current) => (current.monto_haber_alt ?? 0) + prev, 0)
-  };
-}
-
-
-
 export default class ComprobantesController {
 
   public async unComprobante({ request, response, auth }: HttpContextContract) {
@@ -89,7 +71,25 @@ export default class ComprobantesController {
       .preload('comprobante_detalles', (query) => {
         query.whereIn('id', ids_detalles)
           .select('monto_debe', 'monto_haber', 'monto_debe_alt', 'monto_haber_alt', 'id', 'glosa');
+      })
+      .withAggregate('comprobante_detalles', (query) => {
+        query.sum('monto_debe').as('total_debe');
       });
+
+
+    console.log(Cuenta.query()
+      .select('id', 'codigo', 'nombre', 'padre_id', 'nivel', 'tipo')
+      .where('empresa_id', gestion.empresa_id)
+      .whereIn('id', ids_cuentas2)
+      .orderByRaw("inet_truchon(codigo)")
+      //.groupBy('codigo')
+      .preload('comprobante_detalles', (query) => {
+        query.whereIn('id', ids_detalles)
+          .select('monto_debe', 'monto_haber', 'monto_debe_alt', 'monto_haber_alt', 'id', 'glosa');
+      })
+      .withAggregate('comprobante_detalles', (query) => {
+        query.sum('monto_debe').as('total_debe');
+      }).toQuery(), "Query");
     if (comprobanteApertura.moneda_id == id_moneda) {
       cuentas.forEach((cuenta) => {
         cuenta.comprobante_detalles.forEach((detalle) => {

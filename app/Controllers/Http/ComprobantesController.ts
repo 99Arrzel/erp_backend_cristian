@@ -24,11 +24,6 @@ export function SumDetallesIndividual({ cuenta }: { cuenta: Cuenta; }) {
   };
 }
 
-export function SumDetalles({ cuentas, haber_o_debe }: { cuentas: Cuenta[], haber_o_debe: 'haber' | 'debe'; }) {
-  return cuentas.reduce((prev, current) =>
-    current.comprobante_detalles.reduce((prev2, current2) => (current2[`monto_${haber_o_debe}`] ?? 0) + prev2, 0) + prev, 0);
-}
-
 
 
 export default class ComprobantesController {
@@ -136,18 +131,12 @@ export default class ComprobantesController {
       comprobante: comprobanteApertura, detalles: {
         activos: {
           cuentas: activos,
-          total_debe: SumDetalles({ cuentas: activos, haber_o_debe: 'debe' }),
-          total_haber: SumDetalles({ cuentas: activos, haber_o_debe: 'haber' })
         },
         pasivo_y_patrimonio: {
           cuentas: [...pasivos, ...patrimonios],
-          total_debe: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'debe' }),
-          total_haber: SumDetalles({ cuentas: [...pasivos, ...patrimonios], haber_o_debe: 'haber' })
         },
         resto: {
           cuentas: resto,
-          total_debe: SumDetalles({ cuentas: resto, haber_o_debe: 'debe' }),
-          total_haber: SumDetalles({ cuentas: resto, haber_o_debe: 'haber' })
         }
       }
     });

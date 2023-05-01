@@ -102,10 +102,20 @@ export default class ComprobantesController {
       .withAggregate('comprobante_detalles', (query) => {
         query.whereIn('id', ids_detalles);
         query.sum('monto_debe').as('total_debe');
+      })
+      .withAggregate('comprobante_detalles', (query) => {
+        query.whereIn('id', ids_detalles);
         query.sum('monto_haber').as('total_haber');
+      })
+      .withAggregate('comprobante_detalles', (query) => {
+        query.whereIn('id', ids_detalles);
         query.sum('monto_debe_alt').as('total_debe_alt');
+      })
+      .withAggregate('comprobante_detalles', (query) => {
+        query.whereIn('id', ids_detalles);
         query.sum('monto_haber_alt').as('total_haber_alt');
       });
+
     /* if (comprobanteApertura.moneda_id == id_moneda) {
       cuentas.forEach((cuenta) => {
 

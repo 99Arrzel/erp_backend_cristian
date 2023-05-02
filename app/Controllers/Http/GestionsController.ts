@@ -11,7 +11,7 @@ export default class GestionsController {
     const empresa = await Gestion.query().where(
       "empresa_id",
       request.param("id")
-    );
+    ).preload('periodos');
     return response.json(empresa);
   }
   public async upsert({ request, response, auth }: HttpContextContract) {

@@ -178,7 +178,6 @@ export default class ComprobantesController {
     if (!id_periodo) {
       return response.badRequest({ error: 'No se ha enviado el id del periodo o gestion' });
     }
-
     const periodo = await Periodo.findOrFail(id_periodo);
     if (id_gestion) { //obtenemos la gestion
       const gestion = await Gestion.findOrFail(id_gestion);

@@ -5,6 +5,7 @@ import Comprobante from './Comprobante';
 import Cuenta from './Cuenta';
 
 export default class ComprobanteDetalle extends BaseModel {
+
   public static table = 'detalle_comprobantes';
 
   @column({ isPrimary: true })

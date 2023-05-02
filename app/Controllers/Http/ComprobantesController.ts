@@ -87,6 +87,14 @@ function swapMontosDetalles(detalle: ComprobanteDetalle) {
   detalle.monto_haber = temp2;
 }
 
+/* Convertir monto_debe_alt a saldo */
+function calcularSaldosCuentaDetalle(detalle: ComprobanteDetalle[]) {
+  let saldo = 0;
+  detalle.forEach((detalle) => {
+    saldo += (detalle.monto_debe ?? 0) - (detalle.monto_haber ?? 0);
+    detalle.monto_debe_alt = saldo;
+  });
+}
 
 export default class ComprobantesController {
 
@@ -143,6 +151,7 @@ export default class ComprobantesController {
       if (comprobante.moneda_id == id_moneda) { //Si es igual a la que se guarda (que es la alternativa), cambiamos
         swapMontosComprobante(comprobante);
       }
+
     });
     return response.json({
       por_gestion_o_periodo: id_gestion ? 'gestion' : 'periodo',
@@ -156,6 +165,7 @@ export default class ComprobantesController {
       total_haber: calcularTotal(comprobantes, 'haber'),
     });
   }
+
   public async ComprobanteLibroMayor({ request, response, auth }: HttpContextContract) {
     let fecha_inicio = new Date();
     let fecha_fin = new Date();
@@ -200,7 +210,11 @@ export default class ComprobantesController {
         if (detalle.comprobante.moneda_id == id_moneda) { //Si es igual a la que se guarda (que es la alternativa), cambiamos
           swapMontosDetalles(detalle);
         }
+
       });
+    });
+    cuentasFiltradas.forEach((cuenta) => {
+      calcularSaldosCuentaDetalle(cuenta.comprobante_detalles);
     });
     return response.json({
       por_gestion_o_periodo: id_gestion ? 'gestion' : 'periodo',

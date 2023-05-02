@@ -92,7 +92,7 @@ function calcularSaldosCuentaDetalle(detalle: ComprobanteDetalle[]) {
   let saldo = 0;
   detalle.forEach((detalle) => {
     saldo += (detalle.monto_debe ?? 0) - (detalle.monto_haber ?? 0);
-    detalle.monto_debe_alt = saldo;
+    detalle.monto_debe_alt = Math.abs(saldo);
   });
 }
 
@@ -200,7 +200,9 @@ export default class ComprobantesController {
       .where('empresa_id', empresa.id)
       .preload('comprobante_detalles', (query) => {
         query.whereIn('comprobante_id', comprobantes.map((comprobante) => comprobante.id))
-          .preload('comprobante');
+          .preload('comprobante', (query) => {
+            query.orderBy('fecha', 'asc');
+          });
       })
       .orderByRaw('inet_truchon(codigo) asc');
     /* Filter cuentas donde comprobante_detalles.length === 0 */

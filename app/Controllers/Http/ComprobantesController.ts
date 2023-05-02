@@ -206,6 +206,7 @@ export default class ComprobantesController {
       por_gestion_o_periodo: id_gestion ? 'gestion' : 'periodo',
       cuentas: cuentasFiltradas,
       empresa,
+      periodo,
       gestion: gPeriodo,
       moneda,
       usuario: auth.user,

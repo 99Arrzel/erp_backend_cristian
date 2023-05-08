@@ -150,6 +150,7 @@ export default class ComprobantesController {
       });
     }
 
+
     let cuentasConSumasYSaldos: TCuentaConSumasYSaldos[] = [];
 
     cuentas.forEach((cuenta) => {
@@ -183,6 +184,7 @@ export default class ComprobantesController {
       empresa,
       gestion,
       moneda,
+      usuario: auth.user,
     });
   }
   public async unComprobante({ request, response, auth }: HttpContextContract) {

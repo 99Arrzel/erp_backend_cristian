@@ -69,6 +69,7 @@ Route.group(() => {
       Route.post('/balance_inicial', 'ComprobantesController.ComprobanteAperturaGestion');
       Route.post('/libro_diario', 'ComprobantesController.ComprobanteLibroDiario');
       Route.post('/libro_mayor', 'ComprobantesController.ComprobanteLibroMayor');
+      Route.post('/sumas_saldos', 'ComprobantesController.comprobacionSumasYSaldos');
     }).prefix('/reportes');
 
   }).middleware('auth');

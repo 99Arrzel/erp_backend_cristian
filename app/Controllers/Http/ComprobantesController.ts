@@ -10,6 +10,15 @@ import { LucidModel, ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm';
 import Empresa from 'App/Models/Empresa';
 import Moneda from 'App/Models/Moneda';
 
+interface TCuentaConSumasYSaldos {
+
+  nombre: string;
+  codigo: string;
+  sumas_debe: number;
+  sumas_haber: number;
+  saldos_debe: number;
+  saldos_haber: number;
+}
 
 
 /* Esta funcion agarra una lista de cuentas, y las suma hacia sus padres. */
@@ -34,6 +43,8 @@ function sumValuesToParents(accounts) {
   }
   return accounts;
 }
+
+
 
 
 async function logQueryBuilder<T extends LucidModel>(query: ModelQueryBuilderContract<T>) {
@@ -98,6 +109,82 @@ function calcularSaldosCuentaDetalle(detalle: ComprobanteDetalle[]) {
 
 export default class ComprobantesController {
 
+
+  public async comprobacionSumasYSaldos({ request, response, auth }: HttpContextContract) {
+
+    const id_gestion = request.input('id_gestion');
+    const id_moneda = request.input('id_moneda');
+
+    if (!id_gestion) {
+      return response.badRequest({ error: 'No se ha enviado el id de la gestión' });
+    }
+    const gestion = await Gestion.findOrFail(id_gestion);
+    const fecha_inicio = new Date(gestion.fecha_inicio.toString());
+    const fecha_fin = new Date(gestion.fecha_fin.toString());
+    const empresa = await Empresa.findOrFail(gestion.empresa_id);
+    let moneda;
+    if (id_moneda) {
+      moneda = await Moneda.findOrFail(id_moneda);
+    }
+    const comprobantes = await Comprobante.query()
+      .where('estado', '!=', 'Anulado')
+      .where('usuario_id', auth.user?.id as number)
+      .whereBetween('fecha', [fecha_inicio, fecha_fin]).select('id');
+    let cuentas = await Cuenta.query()
+      .where('empresa_id', gestion.empresa_id)
+      .where('tipo', 'DETALLE')
+      .orderByRaw('inet_truchon(codigo)')
+      .preload('comprobante_detalles', (query) => {
+        query.whereIn('comprobante_id', comprobantes.map((comprobante) => comprobante.id))
+          .preload('comprobante', (query) => {
+            query.orderBy('fecha', 'asc');
+          });
+      });
+    if (id_moneda) {
+      cuentas.forEach((cuenta) => {
+        cuenta.comprobante_detalles.forEach((detalle) => {
+          if (detalle.comprobante.moneda_id == id_moneda) {
+            swapMontosDetalles(detalle);
+          }
+        });
+      });
+    }
+
+    let cuentasConSumasYSaldos: TCuentaConSumasYSaldos[] = [];
+
+    cuentas.forEach((cuenta) => {
+      let sumas_debe = 0;
+      let sumas_haber = 0;
+      let saldos_debe = 0;
+      let saldos_haber = 0;
+      cuenta.comprobante_detalles.forEach((detalle) => {
+        sumas_debe += detalle.monto_debe ?? 0;
+        sumas_haber += detalle.monto_haber ?? 0;
+      });
+      saldos_debe = sumas_debe - sumas_haber;
+      saldos_haber = sumas_haber - sumas_debe;
+      if (saldos_debe < 0) {
+        saldos_debe = 0;
+      }
+      if (saldos_haber < 0) {
+        saldos_haber = 0;
+      }
+      cuentasConSumasYSaldos.push({
+        nombre: cuenta.nombre,
+        codigo: cuenta.codigo,
+        sumas_debe,
+        sumas_haber,
+        saldos_debe,
+        saldos_haber,
+      });
+    });
+    return response.json({
+      cuentas: cuentasConSumasYSaldos,
+      empresa,
+      gestion,
+      moneda,
+    });
+  }
   public async unComprobante({ request, response, auth }: HttpContextContract) {
     console.log(request.input('id'));
     const id = request.input('id');
@@ -209,6 +296,7 @@ export default class ComprobantesController {
     cuentasFiltradas.forEach((cuenta) => {
       cuenta.comprobante_detalles.forEach((detalle) => {
         if (detalle.comprobante.moneda_id == id_moneda) { //Si es igual a la que se guarda (que es la alternativa), cambiamos
+
           swapMontosDetalles(detalle);
         }
 

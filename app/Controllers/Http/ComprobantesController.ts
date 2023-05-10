@@ -511,8 +511,13 @@ export default class ComprobantesController {
       }
     }
     /* Validacion de cuenta último nivel */
-    const cuentasVal = await Cuenta.query().where('empresa_id', request.input('empresa_id')).whereIn('id', detalles.map((detalle) => detalle.cuenta_id)).where('tipo', "DETALLE");
-    if (cuentasVal.length !== detalles.length) {
+    const cuentasVal = await Cuenta.query()
+      .where('empresa_id', request.input('empresa_id'))
+      .whereIn('id', detalles.map((detalle) => detalle.cuenta_id))
+      .where('tipo', "DETALLE").distinct('id');
+    //detalles disntict ids igual
+    const idsNoRepetidos = detalles.map((detalle) => detalle.cuenta_id).filter((value, index, self) => self.indexOf(value) === index);
+    if (cuentasVal.length !== idsNoRepetidos.length) {
       return response.status(400).json({ message: "Alguna cuenta no es de último nivel, chequea eso" });
     }
     const comprobanteSerie = await Comprobante.query().where('empresa_id', request.input('empresa_id'));
@@ -526,8 +531,8 @@ export default class ComprobantesController {
     comprobante.empresa_id = request.input('empresa_id');
     comprobante.moneda_id = request.input('moneda_id');
     comprobante.usuario_id = auth.user?.id as number;
-
     await comprobante.save();
+
     comprobante.related('comprobante_detalles').createMany(detalles.map((detalle, index) => {
       return {
         numero: (index + 1).toString(),

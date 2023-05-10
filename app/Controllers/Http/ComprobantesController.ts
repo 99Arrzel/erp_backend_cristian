@@ -486,11 +486,15 @@ export default class ComprobantesController {
       }
     });
     const fechaVerificar = new Date(request.input('fecha'));
-    const periodo = await Periodo.query().where('fecha_inicio', '<=', fechaVerificar).where('fecha_fin', '>=', fechaVerificar).where('estado', true)
-      /* Doesn't have empresa_id, but gestion_id has empresa_id */
-      .preload('gestion', (gestionQuery) => {
+    const periodo = await Periodo.query()
+      .where('fecha_inicio', '<=', fechaVerificar)
+      .where('fecha_fin', '>=', fechaVerificar)
+      .where('estado', true)
+      .whereHas('gestion', (gestionQuery) => {
         gestionQuery.where('empresa_id', request.input('empresa_id'));
-      }).first();
+      })
+      .preload('gestion')
+      .first();
     if (!periodo?.gestion) {
       return response.status(400).json({ message: "No existe periodo abierto en esa fecha" });
     }

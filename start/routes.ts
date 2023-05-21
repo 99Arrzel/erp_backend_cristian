@@ -71,6 +71,19 @@ Route.group(() => {
       Route.post('/libro_mayor', 'ComprobantesController.ComprobanteLibroMayor');
       Route.post('/sumas_saldos', 'ComprobantesController.comprobacionSumasYSaldos');
     }).prefix('/reportes');
+    Route.group(() => {
+      Route.post('/listar', 'CategoriasController.listar');
+      Route.post('/crear', 'CategoriasController.crear');
+      Route.post('/actualizar', 'CategoriasController.actualizar');
+      Route.post('/eliminar', 'CategoriasController.eliminar');
+    }).prefix("/categorias");
+    Route.group(() => {
+      Route.post('/listar', 'ArticulosController.listar');
+      Route.post('/crear', 'ArticulosController.crear');
+      Route.post('/actualizar', 'ArticulosController.actualizar');
+      Route.post('/eliminar', 'ArticulosController.eliminar');
+    }).prefix("/articulos");
+
 
   }).middleware('auth');
 }).prefix('/api');

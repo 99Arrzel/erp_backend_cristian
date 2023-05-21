@@ -5,6 +5,8 @@ import Usuario from './Usuario';
 import EmpresaMoneda from './EmpresaMoneda';
 import Comprobante from './Comprobante';
 import Cuenta from './Cuenta';
+import Categoria from './Categoria';
+import Articulo from './Articulo';
 export default class Empresa extends BaseModel {
   @column({ isPrimary: true })
   public id: number;
@@ -48,6 +50,14 @@ export default class Empresa extends BaseModel {
   })
   public cuentas: HasMany<typeof Cuenta>;
 
+  @hasMany(() => Categoria, {
+    foreignKey: 'empresa_id',
+  })
+  public categorias: HasMany<typeof Categoria>;
+  @hasMany(() => Articulo, {
+    foreignKey: 'empresa_id',
+  })
+  public articulos: HasMany<typeof Articulo>;
 
 
   @column.dateTime({ autoCreate: true })

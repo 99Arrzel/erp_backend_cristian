@@ -1,56 +1,77 @@
 import { DateTime } from 'luxon';
-import { BaseModel, BelongsTo, HasMany, ManyToMany, belongsTo, column, hasMany, manyToMany } from '@ioc:Adonis/Lucid/Orm';
+import { BaseModel, BelongsTo, HasMany, belongsTo, column, hasMany } from '@ioc:Adonis/Lucid/Orm';
 import Empresa from './Empresa';
 import Usuario from './Usuario';
-import Categoria from './Categoria';
+import Comprobante from './Comprobante';
 import Lote from './Lote';
 
-export default class Articulo extends BaseModel {
+export default class Nota extends BaseModel {
   @column({ isPrimary: true })
   public id: number;
 
   @column()
-  public nombre: string;
+  public nro_nota: number;
+
+  @column()
+  public fecha: DateTime;
+
   @column()
   public descripcion: string;
+
   @column()
-  public precio_venta: number;
-  @column()
-  public stock: number;
-  @column()
+
   public empresa_id: number;
+
   @column()
+
   public usuario_id: number;
 
+  @column()
+
+  public comprobante_id: number | null;
+
+  @column()
+  public tipo: 'compra' | 'venta';
+
+  @column()
+  public estado: 'activo' | 'anulado';
+
+  @column()
+
+  public total: number;
+
+  //Relaciones
+  //Relacion con empresa
   @belongsTo(() => Empresa, {
     localKey: 'empresa_id',
   })
-
   public empresa: BelongsTo<typeof Empresa>;
 
+  //Relacion con usuario
   @belongsTo(() => Usuario, {
     localKey: 'usuario_id',
   })
   public usuario: BelongsTo<typeof Usuario>;
 
-
-  //Categorias con tabla intermedia ArticulosCategoria
-  @manyToMany(() => Categoria, {
-    pivotTable: 'articulos_categorias',
-
-    localKey: 'id',
-    pivotForeignKey: 'articulo_id',
-
-    relatedKey: 'id',
-    pivotRelatedForeignKey: 'categoria_id',
+  //Relacion con comprobante
+  @belongsTo(() => Comprobante, {
+    localKey: 'comprobante_id',
   })
-  public categorias: ManyToMany<typeof Categoria>;
-
-  //lote
+  public comprobante: BelongsTo<typeof Comprobante>;
+  //Lotes
   @hasMany(() => Lote, {
-    foreignKey: 'articulo_id',
+    foreignKey: 'nota_id',
   })
   public lotes: HasMany<typeof Lote>;
+
+
+
+
+
+
+
+
+
 
 
   @column.dateTime({ autoCreate: true })

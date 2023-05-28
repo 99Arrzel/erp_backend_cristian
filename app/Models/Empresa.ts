@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { BaseModel, BelongsTo, HasMany, belongsTo, column, hasMany } from '@ioc:Adonis/Lucid/Orm';
+import { BaseModel, BelongsTo, HasMany, HasOne, belongsTo, column, hasMany, hasOne } from '@ioc:Adonis/Lucid/Orm';
 
 import Usuario from './Usuario';
 import EmpresaMoneda from './EmpresaMoneda';
@@ -7,6 +7,9 @@ import Comprobante from './Comprobante';
 import Cuenta from './Cuenta';
 import Categoria from './Categoria';
 import Articulo from './Articulo';
+import Nota from './Nota';
+import Gestion from './Gestion';
+import CuentasIntegracion from './CuentasIntegracion';
 export default class Empresa extends BaseModel {
   @column({ isPrimary: true })
   public id: number;
@@ -58,7 +61,22 @@ export default class Empresa extends BaseModel {
     foreignKey: 'empresa_id',
   })
   public articulos: HasMany<typeof Articulo>;
+  //Notas
+  @hasMany(() => Nota, {
+    foreignKey: 'empresa_id',
+  })
+  public notas: HasMany<typeof Nota>;
 
+  @hasMany(() => Gestion, {
+    foreignKey: 'empresa_id',
+  })
+  public gestiones: HasMany<typeof Gestion>;
+
+  //cuentas_integracion
+  @hasOne(() => CuentasIntegracion, {
+    foreignKey: 'empresa_id',
+  })
+  public cuentas_integracion: HasOne<typeof CuentasIntegracion>;
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime;

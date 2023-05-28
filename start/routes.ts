@@ -83,6 +83,10 @@ Route.group(() => {
       Route.post('/actualizar', 'ArticulosController.actualizar');
       Route.post('/eliminar', 'ArticulosController.eliminar');
     }).prefix("/articulos");
+    Route.group(() => {
+      Route.post('/listar', 'CuentasIntegracionsController.listar');
+      Route.post('/integrar', 'CuentasIntegracionsController.setIntegracion');
+    }).prefix("/integracion");
 
 
   }).middleware('auth');

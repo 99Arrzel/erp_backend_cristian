@@ -6,6 +6,8 @@ import Periodo from './Periodo';
 import Hash from '@ioc:Adonis/Core/Hash';
 import Comprobante from './Comprobante';
 import ComprobanteDetalle from './ComprobanteDetalle';
+import Nota from './Nota';
+import Cuenta from './Cuenta';
 
 //import { Encryption } from '@adonisjs/core/build/standalone'; //standalone
 
@@ -50,6 +52,16 @@ export default class Usuario extends BaseModel {
     foreignKey: 'usuario_id',
   })
   public comprobante_detalles: HasMany<typeof ComprobanteDetalle>;
+
+  //Nota
+  @hasMany(() => Nota, {
+    foreignKey: 'usuario_id',
+  })
+  public notas: HasMany<typeof Nota>;
+  @hasMany(() => Cuenta, {
+    foreignKey: 'usuario_id',
+  })
+  public cuentas: HasMany<typeof Cuenta>;
 
 
   @beforeSave()

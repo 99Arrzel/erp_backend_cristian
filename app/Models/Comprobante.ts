@@ -4,6 +4,7 @@ import Empresa from './Empresa';
 import Usuario from './Usuario';
 import Moneda from './Moneda';
 import ComprobanteDetalle from './ComprobanteDetalle';
+import Nota from './Nota';
 
 export type Estado = 'Abierto' | 'Cerrado' | 'Anulado';
 export type TipoComprobante = 'Ingreso' | 'Egreso' | 'Traspaso' | 'Apertura' | 'Ajuste';
@@ -52,7 +53,10 @@ export default class Comprobante extends BaseModel {
   })
   public comprobante_detalles: HasMany<typeof ComprobanteDetalle>;
 
-
+  @hasMany(() => Nota, {
+    foreignKey: 'comprobante_id',
+  })
+  public notas: HasMany<typeof Nota>;
 
 
 

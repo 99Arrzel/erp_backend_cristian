@@ -82,11 +82,22 @@ Route.group(() => {
       Route.post('/crear', 'ArticulosController.crear');
       Route.post('/actualizar', 'ArticulosController.actualizar');
       Route.post('/eliminar', 'ArticulosController.eliminar');
+      Route.post('/listar_con_lotes', 'ArticulosController.lista_articulos_con_lotes');
     }).prefix("/articulos");
     Route.group(() => {
       Route.post('/listar', 'CuentasIntegracionsController.listar');
       Route.post('/integrar', 'CuentasIntegracionsController.setIntegracion');
     }).prefix("/integracion");
+    Route.group(() => {
+      Route.post('/listar', 'NotasController.lista_notas');
+      Route.post('/crear_compra', 'NotasController.crear_compra');
+      Route.post('/crear_venta', 'NotasController.crear_venta');
+      Route.post('/anular_compra', 'NotasController.anular_compra');
+      Route.post('/anular_venta', 'NotasController.anular_venta');
+      Route.post('/ultimo_numero', 'NotasController.ultimo_numero');
+      Route.post('/una_nota', 'NotasController.una_nota');
+      Route.post('/una_nota_venta', 'NotasController.una_nota_venta');
+    }).prefix("/notas");
 
 
   }).middleware('auth');

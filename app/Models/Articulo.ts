@@ -46,10 +46,12 @@ export default class Articulo extends BaseModel {
   })
   public categorias: ManyToMany<typeof Categoria>;
 
+
   //lote
   @hasMany(() => Lote, {
     foreignKey: 'articulo_id',
   })
+
   public lotes: HasMany<typeof Lote>;
 
 

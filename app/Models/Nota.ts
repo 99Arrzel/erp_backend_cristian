@@ -4,6 +4,7 @@ import Empresa from './Empresa';
 import Usuario from './Usuario';
 import Comprobante from './Comprobante';
 import Lote from './Lote';
+import Detalle from './Detalle';
 
 export default class Nota extends BaseModel {
   @column({ isPrimary: true })
@@ -43,19 +44,19 @@ export default class Nota extends BaseModel {
   //Relaciones
   //Relacion con empresa
   @belongsTo(() => Empresa, {
-    localKey: 'empresa_id',
+    foreignKey: 'empresa_id',
   })
   public empresa: BelongsTo<typeof Empresa>;
 
   //Relacion con usuario
   @belongsTo(() => Usuario, {
-    localKey: 'usuario_id',
+    foreignKey: 'usuario_id',
   })
   public usuario: BelongsTo<typeof Usuario>;
 
   //Relacion con comprobante
   @belongsTo(() => Comprobante, {
-    localKey: 'comprobante_id',
+    foreignKey: 'comprobante_id',
   })
   public comprobante: BelongsTo<typeof Comprobante>;
   //Lotes
@@ -64,6 +65,11 @@ export default class Nota extends BaseModel {
   })
   public lotes: HasMany<typeof Lote>;
 
+  //Detalles
+  @hasMany(() => Detalle, {
+    foreignKey: 'nota_id',
+  })
+  public detalles: HasMany<typeof Detalle>;
 
 
 

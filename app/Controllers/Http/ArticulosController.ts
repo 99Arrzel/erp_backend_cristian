@@ -3,6 +3,26 @@ import Empresa from 'App/Models/Empresa';
 
 export default class ArticulosController {
 
+  public async lista_articulos_con_lotes({ request, response, auth }: HttpContextContract) {
+    const id_empresa = request.input('id_empresa');
+    if (id_empresa == null) {
+      return response.status(400).json({ message: 'El id de la empresa es requerido' });
+    }
+    const empresa = await Empresa.query().where('id', id_empresa).where('usuario_id', auth.user?.id as number).first();
+    if (!empresa) {
+      return response.status(400).json({ message: 'La empresa no existe' });
+    }
+    const articulos = await empresa.related('articulos').query()
+      .whereHas('lotes', (query) => {
+        query.where('stock', '>', 0);
+      }).preload('lotes', (query) => {
+        query.where('stock', '>', 0);
+      });
+
+
+    return response.status(200).json(articulos);
+  }
+
   public async listar({ request, response, auth }: HttpContextContract) {
     const id = request.input('id');
     if (id == null) {

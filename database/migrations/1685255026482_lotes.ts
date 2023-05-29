@@ -5,10 +5,10 @@ export default class extends BaseSchema {
 
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
-
+      table.increments('id');
       //nro_lote
       table.integer('nro_lote').notNullable();
-      table.integer('articulo_id').unsigned().references('id').inTable('articulos').onDelete('CASCADE');
+      table.integer('articulo_id').notNullable().unsigned().references('id').inTable('articulos').onDelete('CASCADE');
 
       table.enum('estado', ['activo', 'anulado']).notNullable();
 
@@ -26,8 +26,8 @@ export default class extends BaseSchema {
       table.timestamp('created_at', { useTz: true });
       table.timestamp('updated_at', { useTz: true });
       //unique nro_lote y articulo_id, además de pk
-      table.primary(['nro_lote', 'articulo_id']);
 
+      table.unique(['nro_lote', 'articulo_id']);
 
     });
   }

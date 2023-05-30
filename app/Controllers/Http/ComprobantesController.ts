@@ -118,7 +118,10 @@ export default class ComprobantesController {
     if (!id_gestion) {
       return response.badRequest({ error: 'No se ha enviado el id de la gestión' });
     }
-    const gestion = await Gestion.findOrFail(id_gestion);
+    const gestion = await Gestion.query().where('id', id_gestion).where('usuario_id', auth.user?.id as number).first();
+    if (!gestion) {
+      return response.badRequest({ error: 'No se ha encontrado la gestión' });
+    }
     const fecha_inicio = new Date(gestion.fecha_inicio.toString());
     const fecha_fin = new Date(gestion.fecha_fin.toString());
     const empresa = await Empresa.findOrFail(gestion.empresa_id);
@@ -129,6 +132,7 @@ export default class ComprobantesController {
     const comprobantes = await Comprobante.query()
       .where('estado', '!=', 'Anulado')
       .where('usuario_id', auth.user?.id as number)
+      .where('empresa_id', gestion.empresa_id)
       .whereBetween('fecha', [fecha_inicio, fecha_fin]).select('id');
     let cuentas = await Cuenta.query()
       .where('empresa_id', gestion.empresa_id)

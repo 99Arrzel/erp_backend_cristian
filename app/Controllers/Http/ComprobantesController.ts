@@ -147,8 +147,8 @@ export default class ComprobantesController {
     if (id_moneda) {
       cuentas.forEach((cuenta) => {
         cuenta.comprobante_detalles.forEach((detalle) => {
-          if (detalle.comprobante.moneda_id == id_moneda) {
-            //swapMontosDetalles(detalle);
+          if (detalle.comprobante.moneda_id == id_moneda && id_moneda != "" && id_moneda != null) {
+            swapMontosDetalles(detalle);
           }
         });
       });

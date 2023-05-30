@@ -150,7 +150,7 @@ export default class NotasController {
           tipo: 'Ingreso',
           estado: 'Abierto',
           //nro_nota[0].$extras['max']
-          serie: (serie[0].$extras['max'] ?? 0) + 1,
+          serie: (Number(serie[0].$extras['max'] ?? 0) + 1).toString(),
           tc: moneda[0].cambio,
           moneda_id: moneda_principal.id,
           usuario_id: auth.user?.id as number,

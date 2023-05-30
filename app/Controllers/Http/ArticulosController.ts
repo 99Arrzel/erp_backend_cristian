@@ -14,9 +14,9 @@ export default class ArticulosController {
     }
     const articulos = await empresa.related('articulos').query()
       .whereHas('lotes', (query) => {
-        query.where('stock', '>', 0);
+        query.where('stock', '>', 0).where('estado', 'activo');
       }).preload('lotes', (query) => {
-        query.where('stock', '>', 0);
+        query.where('stock', '>', 0).where('estado', 'activo');
       });
 
 

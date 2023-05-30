@@ -144,11 +144,11 @@ export default class ComprobantesController {
             query.orderBy('fecha', 'asc');
           });
       });
-    if (id_moneda) {
+    if (moneda) {
       cuentas.forEach((cuenta) => {
         cuenta.comprobante_detalles.forEach((detalle) => {
-          if (detalle.comprobante.moneda_id === id_moneda) {
-            console.log('swap', detalle.comprobante.moneda_id, id_moneda);
+          if (detalle.comprobante.moneda_id === moneda.id) {
+
             swapMontosDetalles(detalle);
           }
         });

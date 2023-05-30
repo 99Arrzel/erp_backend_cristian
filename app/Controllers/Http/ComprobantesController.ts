@@ -126,7 +126,7 @@ export default class ComprobantesController {
     const fecha_fin = new Date(gestion.fecha_fin.toString());
     const empresa = await Empresa.query().where('id', gestion.empresa_id)
       .preload('empresa_monedas', (query) => {
-        query.where('estado', 'Activo').limit(1);
+        query.where('activo', true).limit(1);
       })
       .where('usuario_id', auth.user?.id as number).first();
     if (!empresa) {

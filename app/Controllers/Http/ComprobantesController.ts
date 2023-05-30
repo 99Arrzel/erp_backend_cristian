@@ -155,6 +155,8 @@ export default class ComprobantesController {
 
 
     if (moneda.id !== empresa.empresa_monedas[0].moneda_principal_id) {
+      console.log('swap');
+      console.log(moneda.id, empresa.empresa_monedas[0].moneda_principal_id);
       cuentas.forEach((cuenta) => {
         cuenta.comprobante_detalles.forEach((detalle) => {
           swapMontosDetalles(detalle);

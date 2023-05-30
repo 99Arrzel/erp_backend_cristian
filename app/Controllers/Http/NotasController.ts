@@ -315,7 +315,7 @@ export default class NotasController {
           tipo: 'Egreso',
           estado: 'Abierto',
           //nro_nota[0].$extras['max']
-          serie: (serie[0].$extras['max'] ?? 0) + 1,
+          serie: (Number(serie[0].$extras['max'] ?? 0) + 1).toString(),
           tc: moneda[0].cambio,
           moneda_id: moneda_principal.id,
           usuario_id: auth.user?.id as number,
@@ -326,10 +326,10 @@ export default class NotasController {
         const porcentaje_credito_fiscal = 0.13;
         comprobante.related('comprobante_detalles').create({
           cuenta_id: integracion.compras_id,
-          monto_haber: total * 0.87,
-          monto_haber_alt: (total * 0.87) * moneda[0].cambio,
-          monto_debe: 0,
-          monto_debe_alt: 0,
+          monto_debe: total * 0.87,
+          monto_debe_alt: (total * 0.87) * moneda[0].cambio,
+          monto_haber: 0,
+          monto_haber_alt: 0,
           glosa: "Compra de mercaderías",
           numero: "1",
           usuario_id: auth.user?.id as number,
@@ -348,10 +348,10 @@ export default class NotasController {
         //caja
         comprobante.related('comprobante_detalles').create({
           cuenta_id: integracion.caja_id,
-          monto_debe: total * 0.13,
-          monto_debe_alt: (total * 0.13) * moneda[0].cambio,
-          monto_haber: 0,
-          monto_haber_alt: 0,
+          monto_haber: total,
+          monto_haber_alt: (total) * moneda[0].cambio,
+          monto_debe: 0,
+          monto_debe_alt: 0,
           glosa: "Compra de mercaderías",
           numero: "3",
           usuario_id: auth.user?.id as number,

@@ -217,7 +217,10 @@ export default class ComprobantesController {
       return response.badRequest({ error: 'No se ha enviado el id del periodo o gestion' });
     }
 
-    const periodo = await Periodo.findOrFail(id_periodo);
+    const periodo = await Periodo.query().where('id', id_periodo).where('usuario_id', auth.user?.id as number).preload('gestion').first();
+    if (!periodo) {
+      return response.badRequest({ error: 'No se ha encontrado el periodo' });
+    }
     if (id_gestion) { //obtenemos la gestion
       const gestion = await Gestion.findOrFail(id_gestion);
       fecha_inicio = new Date(gestion.fecha_inicio.toString());
@@ -229,6 +232,7 @@ export default class ComprobantesController {
     const comprobantes = await Comprobante.query()
       .where('estado', '!=', 'Anulado')
       .where('usuario_id', auth.user?.id as number)
+      .where('empresa_id', periodo.gestion.empresa_id)
       .whereBetween('fecha', [fecha_inicio, fecha_fin])
       .preload('comprobante_detalles', (query) => {
         query.preload('cuenta');

@@ -154,17 +154,12 @@ export default class ComprobantesController {
     //moneda principal
 
 
-    if (moneda) {
+    if (moneda.id !== empresa.empresa_monedas[0].moneda_principal_id) {
       cuentas.forEach((cuenta) => {
         cuenta.comprobante_detalles.forEach((detalle) => {
-          console.log(empresa.empresa_monedas[0].moneda_alternativa_id);
-          console.log(moneda?.id);
-
-          if (empresa.empresa_monedas[0] && empresa.empresa_monedas[0].moneda_alternativa_id === moneda?.id) { //Si es igual a la que se guarda (que es la alternativa), cambiamos
-
-            swapMontosDetalles(detalle);
-          }
-        });
+          swapMontosDetalles(detalle);
+        }
+        );
       });
     }
 

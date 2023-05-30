@@ -124,7 +124,14 @@ export default class ComprobantesController {
     }
     const fecha_inicio = new Date(gestion.fecha_inicio.toString());
     const fecha_fin = new Date(gestion.fecha_fin.toString());
-    const empresa = await Empresa.findOrFail(gestion.empresa_id);
+    const empresa = await Empresa.query().where('id', gestion.empresa_id)
+      .preload('empresa_monedas', (query) => {
+        query.where('estado', 'Activo').limit(1);
+      })
+      .where('usuario_id', auth.user?.id as number).first();
+    if (!empresa) {
+      return response.badRequest({ error: 'No se ha encontrado la empresa' });
+    }
     let moneda;
     if (id_moneda) {
       moneda = await Moneda.findOrFail(id_moneda);
@@ -144,11 +151,13 @@ export default class ComprobantesController {
             query.orderBy('fecha', 'asc');
           });
       });
+    //moneda principal
+
+
     if (moneda) {
       cuentas.forEach((cuenta) => {
         cuenta.comprobante_detalles.forEach((detalle) => {
-          if (detalle.comprobante.moneda_id === moneda.id) {
-
+          if (empresa.empresa_monedas[0].moneda_alternativa_id == moneda?.id) { //Si es igual a la que se guarda (que es la alternativa), cambiamos
             swapMontosDetalles(detalle);
           }
         });

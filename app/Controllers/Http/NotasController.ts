@@ -5,7 +5,6 @@ import Moneda from 'App/Models/Moneda';
 import CuentasIntegracion from 'App/Models/CuentasIntegracion';
 import Comprobante from 'App/Models/Comprobante';
 import Lote from 'App/Models/Lote';
-import Articulo from 'App/Models/Articulo';
 type Lotes = {
   articulo_id: number,
   cantidad: number,

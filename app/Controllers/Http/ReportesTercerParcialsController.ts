@@ -1,6 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
-import Comprobante from 'App/Models/Comprobante';
 import Cuenta from 'App/Models/Cuenta';
 import Gestion from 'App/Models/Gestion';
 import Moneda from 'App/Models/Moneda';

@@ -51,10 +51,16 @@ export default class ReportesTercerParcialsController {
     if (!nota) {
       return response.status(400).json({ message: 'La nota no existe' });
     }
+    const empresa = await nota.related('empresa').query().first();
+    if (empresa == null) {
+      return response.status(400).json({ message: 'La empresa no existe' });
+    }
+
+
     return response.status(200).json({
       nota: nota,
       usuario: auth.user,
-      empresa: nota.related('empresa').query().first(),
+      empresa: empresa
     });
   }
 

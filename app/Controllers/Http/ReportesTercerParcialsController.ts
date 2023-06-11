@@ -18,14 +18,19 @@ export default class ReportesTercerParcialsController {
     const nota = await Nota.query().where('id', id_nota).where('usuario_id', auth.user?.id as number)
       .preload('lotes')
       .first();
-
     if (!nota) {
       return response.status(400).json({ message: 'La nota no existe' });
     }
+    const empresa = await nota.related('empresa').query().first();
+    if (empresa == null) {
+      return response.status(400).json({ message: 'La empresa no existe' });
+    }
+
+
     return response.status(200).json({
       nota: nota,
       usuario: auth.user,
-      empresa: nota.related('empresa').query().first(),
+      empresa: empresa
     });
   }
   //Una nota de venta

@@ -16,7 +16,9 @@ export default class ReportesTercerParcialsController {
       return response.status(400).json({ message: 'El id de la nota es requerido' });
     }
     const nota = await Nota.query().where('id', id_nota).where('usuario_id', auth.user?.id as number)
-      .preload('lotes')
+      .preload('lotes', (q) => {
+        q.preload('articulo');
+      })
       .first();
     if (!nota) {
       return response.status(400).json({ message: 'La nota no existe' });

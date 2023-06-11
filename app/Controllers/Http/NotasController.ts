@@ -5,6 +5,7 @@ import Moneda from 'App/Models/Moneda';
 import CuentasIntegracion from 'App/Models/CuentasIntegracion';
 import Comprobante from 'App/Models/Comprobante';
 import Lote from 'App/Models/Lote';
+import Articulo from 'App/Models/Articulo';
 type Lotes = {
   articulo_id: number,
   cantidad: number,
@@ -116,7 +117,11 @@ export default class NotasController {
     const total = data.lotes.reduce((acc, lote: LotesVenta) => {
       return acc + lote.cantidad * lote.precio;
     }, 0);
-    const trx = await Database.transaction();
+    const trx = await Database.transaction({
+      isolationLevel: 'read uncommitted',
+    });
+    console.log(trx);
+
     try {
       let id_comprobante = null as null | number;
       //Integración compras-comprobante, solo si integración existe y está activado
@@ -228,6 +233,8 @@ export default class NotasController {
           comprobante_id: id_comprobante,
           estado: 'activo',
         });
+
+
       //Asignar detalles, hay que crearlos.
       await Promise.all(data.lotes.map(async (lote: LotesVenta) => {
         const de_lote = await Lote.query().useTransaction(trx).where('id', lote.lote_id).first();
@@ -241,10 +248,9 @@ export default class NotasController {
         if (!articulo) {
           throw new Error('El artículo no existe');
         }
-        articulo.stock = articulo.stock - lote.cantidad;
-        articulo.save();
+
         de_lote.stock = de_lote.stock - lote.cantidad;
-        de_lote.save();
+        await de_lote.save();
         //Crear detalle
         const detalle = await notaCreada.useTransaction(trx).related('detalles').create({
           cantidad: lote.cantidad,
@@ -254,6 +260,8 @@ export default class NotasController {
         });
         return detalle;
       }));
+
+
       await notaCreada.load('detalles', (query) => {
         query.preload('lote', (query) => {
           query.preload('articulo', (query) => {
@@ -263,6 +271,7 @@ export default class NotasController {
       }
       );
       await trx.commit();
+      //TODO: sync de stock pendiente
       return response.status(200).json(notaCreada);
     }
     catch (error) {

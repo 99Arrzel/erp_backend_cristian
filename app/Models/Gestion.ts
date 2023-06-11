@@ -27,7 +27,7 @@ export default class Gestion extends BaseModel {
   })
   public usuario: BelongsTo<typeof Usuario>;
   @belongsTo(() => Empresa, {
-    localKey: 'empresa_id',
+    foreignKey: 'empresa_id',
   })
   public empresa: BelongsTo<typeof Empresa>;
   @hasMany(() => Periodo, {

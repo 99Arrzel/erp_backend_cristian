@@ -22,7 +22,7 @@ interface TCuentaConSumasYSaldos {
 
 
 /* Esta funcion agarra una lista de cuentas, y las suma hacia sus padres. */
-function sumValuesToParents(accounts) {
+export function sumValuesToParents(accounts) {
   const accountsMap = accounts.reduce((acc, account) => {
     acc[account.id] = account;
     return acc;
@@ -47,13 +47,13 @@ function sumValuesToParents(accounts) {
 
 
 
-async function logQueryBuilder<T extends LucidModel>(query: ModelQueryBuilderContract<T>) {
+export async function logQueryBuilder<T extends LucidModel>(query: ModelQueryBuilderContract<T>) {
   console.log(query.toSQL().sql);
   console.log(query.toQuery());
   /* Don't return promise */
   return await query;
 }
-function swapMontos(accounts) {
+export function swapMontos(accounts) {
   /* Swap between alts */
   accounts.forEach((account) => {
     const temp = account.total_debe_alt;

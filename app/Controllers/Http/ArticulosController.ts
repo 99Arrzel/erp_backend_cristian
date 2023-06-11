@@ -31,7 +31,12 @@ export default class ArticulosController {
     const empresa = await Empresa.query().where('id', id).where('usuario_id', auth.user?.id as number)
       .preload('articulos', (query) => {
         query.preload('categorias');
+        query.preload('lotes', (query) => {
+          //order by fecha_vencimiento
+          query.orderBy('fecha_vencimiento', 'asc');
+        });
       })
+
       .first();
     if (!empresa) {
       return response.status(400).json({ message: 'La empresa no existe' });
@@ -95,6 +100,11 @@ export default class ArticulosController {
     const articulo = await empresa.related('articulos').query().where('id', data.id).first();
     if (!articulo) {
       return response.status(400).json({ message: 'El artículo no existe' });
+    }
+    //Check que articulo no tenga lotes
+    const lotes = await articulo.related('lotes').query().first();
+    if (lotes) {
+      return response.status(400).json({ message: 'El artículo tiene lotes, no se puede eliminar.' });
     }
     await articulo.delete();
     return response.status(200).json({ message: 'Artículo eliminado' });

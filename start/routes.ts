@@ -70,6 +70,11 @@ Route.group(() => {
       Route.post('/libro_diario', 'ComprobantesController.ComprobanteLibroDiario');
       Route.post('/libro_mayor', 'ComprobantesController.ComprobanteLibroMayor');
       Route.post('/sumas_saldos', 'ComprobantesController.comprobacionSumasYSaldos');
+      //tercer parcial
+      Route.post('/nota_compra', 'ReportesTercerParcialsController.nota_compra');
+      Route.post('/nota_venta', 'ReportesTercerParcialsController.nota_venta');
+      Route.post('/balance_general', 'ReportesTercerParcialsController.balance_general');
+      Route.post('/estado_resultados', 'ReportesTercerParcialsController.estado_resultados');
     }).prefix('/reportes');
     Route.group(() => {
       Route.post('/listar', 'CategoriasController.listar');
@@ -98,6 +103,9 @@ Route.group(() => {
       Route.post('/una_nota', 'NotasController.una_nota');
       Route.post('/una_nota_venta', 'NotasController.una_nota_venta');
     }).prefix("/notas");
+
+
+
 
 
   }).middleware('auth');

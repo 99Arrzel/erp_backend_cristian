@@ -270,19 +270,17 @@ export default class ReportesTercerParcialsController {
       );
     }
 
-    if (ultima_moneda_detalles?.moneda_principal_id !== moneda.id) {
-      //Ahora si, traemos las cuentas con sus sumas
 
-    } else {
-
-    }
     //Ahora si, armamos el balance
-    let cuentas_detalles = cuentas_con_sumas.map((cuenta) => {
+    const cuentas_detalles = cuentas_con_sumas.map((cuenta) => {
       return {
         ...cuenta.$extras,
         ...cuenta.toJSON() as Cuenta
       };
     });
+    console.log("TWTFWEA");
+    console.log(cuentas_detalles);
+
     let ingresos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('4')) as any;
     ingresos.forEach((ingreso) => {
       ingreso.total = ingreso.total_haber - ingreso.total_debe;

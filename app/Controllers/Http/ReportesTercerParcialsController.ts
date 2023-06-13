@@ -281,6 +281,10 @@ export default class ReportesTercerParcialsController {
         ...cuenta.toJSON() as Cuenta
       };
     });
+
+    console.log("=====22222=======");
+    console.log(cuentas_detalles.map((cuenta) => cuenta.codigo).join(","));
+
     console.log("TWTFWEA");
     console.log(cuentas_detalles);
 

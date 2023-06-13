@@ -146,7 +146,10 @@ export default class NotasController {
           throw new Error('No hay un periodo abierto en la fecha de la nota');
         }
         //serie de comprobante
-        const serie = await empresa.related('comprobantes').query().max('serie');
+
+        const serie = await empresa.related('comprobantes').query().orderBy('id', 'desc').limit(1); //Ex max serie, obtener el último y sumarle a us serie nomás
+        const max_serie = serie.length > 0 ? serie[0].serie : 0;
+        const max_serie_number = Number(max_serie) + 1;
         //crear comprobante
         const comprobante = await empresa.useTransaction(trx).related('comprobantes').create({
           fecha: data.fecha,
@@ -154,7 +157,7 @@ export default class NotasController {
           tipo: 'Ingreso',
           estado: 'Abierto',
           //nro_nota[0].$extras['max']
-          serie: (Number(serie[0].$extras['max'] ?? 0) + 1).toString(),
+          serie: (max_serie_number).toString(),
           tc: moneda[0].cambio,
           moneda_id: moneda_principal.id,
           usuario_id: auth.user?.id as number,
@@ -315,7 +318,10 @@ export default class NotasController {
           throw new Error('No hay un periodo abierto en la fecha de la nota');
         }
         //serie de comprobante
-        const serie = await empresa.related('comprobantes').query().max('serie');
+        const serie = await empresa.related('comprobantes').query().orderBy('id', 'desc').limit(1); //Ex max serie, obtener el último y sumarle a us serie nomás
+        const max_serie = serie.length > 0 ? serie[0].serie : 0;
+        const max_serie_number = Number(max_serie) + 1;
+
         console.log(serie, "Max serie", Number(serie[0].$extras['max'] ?? 0) + 1);
         //crear comprobante
         const comprobante = await empresa.useTransaction(trx).related('comprobantes').create({
@@ -324,7 +330,7 @@ export default class NotasController {
           tipo: 'Egreso',
           estado: 'Abierto',
           //nro_nota[0].$extras['max']
-          serie: (Number(serie[0].$extras['max'] ?? 0) + 1).toString(),
+          serie: (max_serie_number).toString(),
           tc: moneda[0].cambio,
           moneda_id: moneda_principal.id,
           usuario_id: auth.user?.id as number,

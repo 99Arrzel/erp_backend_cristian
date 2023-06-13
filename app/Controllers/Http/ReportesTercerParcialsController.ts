@@ -202,17 +202,17 @@ export default class ReportesTercerParcialsController {
     const empresa = await gestion.related('empresa').query().firstOrFail();
 
     //traemos los comprobantes en x fecha
-    const detalles = await ComprobanteDetalle.query()
+    const detalles = await logQueryBuilder(ComprobanteDetalle.query()
       .whereHas('comprobante', (query) => {
         query.where('empresa_id', empresa.id);
         query.whereBetween('fecha', [(new Date(String(gestion.fecha_inicio))), (new Date(String(gestion.fecha_fin)))]);
       })
       .andWhereHas('cuenta', (query) => {
-        query.where('codigo', 'like', '4.%').orWhere('codigo', 'like', '5.1.%').orWhere('codigo', 'like', '5.2.%');
+        query.where('codigo', 'like', '4.%').orWhere('codigo', 'like', '5.1%').orWhere('codigo', 'like', '5.2%');
       }).andWhereHas('comprobante', (query) => {
         //Diferente de Anulado
         query.where('estado', '!=', 'Anulado');
-      });
+      }));
     let cuentas_con_sumas: Cuenta[];
     //ultima moneda
     const ultima_moneda_detalles = await EmpresaMoneda.query().where('empresa_id', empresa.id).where('activo', true).first();

@@ -249,7 +249,7 @@ export default class ReportesTercerParcialsController {
         .where('tipo', "DETALLE")
         //.where('codigo', 'like', '4.%').orWhere('codigo', 'like', '5.1.%').orWhere('codigo', 'like', '5.2.%')
         .andWhere((query) => {
-          query.where('codigo', 'like', '4.%').orWhere('codigo', 'like', '5.1.%').orWhere('codigo', 'like', '5.2.%');
+          query.where('codigo', 'like', '4.%').orWhere('codigo', 'like', '5.1%').orWhere('codigo', 'like', '5.2%');
         })
         .whereIn('id', detalles.map((detalle) => detalle.cuenta_id))
         .preload('comprobante_detalles', (query) => {

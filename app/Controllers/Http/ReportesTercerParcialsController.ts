@@ -283,9 +283,22 @@ export default class ReportesTercerParcialsController {
         ...cuenta.toJSON() as Cuenta
       };
     });
-    const ingresos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('4'));
-    const costos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('5.1'));
-    const gastos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('5.2'));
+    let ingresos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('4')) as any;
+    ingresos.forEach((ingreso) => {
+      ingreso.total = ingreso.total_haber - ingreso.total_debe;
+
+    });
+
+    const costos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('5.1')) as any;
+    costos.forEach((costo) => {
+      costo.total = costo.total_debe - costo.total_haber;
+    });
+
+    const gastos = cuentas_detalles.filter((cuenta) => cuenta.codigo.startsWith('5.2')) as any;
+
+    gastos.forEach((gasto) => {
+      gasto.total = gasto.total_debe - gasto.total_haber;
+    });
 
     //Debemos calcular la utilidad bruta que es ingresos - costos
     const totalIngresos = ingresos.reduce((acc, cuenta: any) => acc + cuenta.total_haber - cuenta.total_debe, 0);

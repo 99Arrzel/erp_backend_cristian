@@ -270,11 +270,13 @@ export default class ReportesTercerParcialsController {
       );
     }
     console.log("===================");
+
     console.log(cuentas_con_sumas);
 
     //Ahora si, armamos el balance
     const cuentas_detalles = cuentas_con_sumas.map((cuenta) => {
       return {
+        ...cuenta.toObject(),
         ...cuenta.$extras,
         ...cuenta.toJSON() as Cuenta
       };

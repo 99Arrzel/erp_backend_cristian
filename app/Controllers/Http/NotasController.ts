@@ -316,7 +316,7 @@ export default class NotasController {
         }
         //serie de comprobante
         const serie = await empresa.related('comprobantes').query().max('serie');
-        console.log(serie, "Max serie");
+        console.log(serie, "Max serie", Number(serie[0].$extras['max'] ?? 0) + 1);
         //crear comprobante
         const comprobante = await empresa.useTransaction(trx).related('comprobantes').create({
           fecha: data.fecha,

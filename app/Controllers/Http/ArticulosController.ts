@@ -35,14 +35,19 @@ export default class ArticulosController {
     if (stock == null) {
       return response.status(400).json({ message: 'El stock es requerido' });
     }
-    const categoria = await Categoria.query().where('id', id_categoria).preload('articulos').first();
+    const categoria = await Categoria.query().where('id', id_categoria).preload('articulos').preload('empresa').preload('usuario').first();
     if (!categoria) {
       return response.status(400).json({ message: 'La categoria no existe' });
     }
 
     const articulos = await categoria.related('articulos').query().where('stock', '<=', stock);
 
-    return response.status(200).json(articulos);
+    return response.status(200).json({
+      categoria: categoria,
+      articulos: articulos,
+      empresa: categoria.empresa,
+      usuario: categoria.usuario,
+    });
   }
   public async listar({ request, response, auth }: HttpContextContract) {
     const id = request.input('id');

@@ -572,7 +572,7 @@ export default class ComprobantesController {
       };
     }
     ));
-    return response.status(200).json({ message: "Creado con éxito" });
+    return response.status(200).json({ message: "Creado con éxito", comprobante });
 
   }
 }

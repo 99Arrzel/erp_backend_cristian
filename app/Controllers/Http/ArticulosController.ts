@@ -1,4 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
+import Articulo from 'App/Models/Articulo';
 import Empresa from 'App/Models/Empresa';
 
 export default class ArticulosController {
@@ -16,13 +17,27 @@ export default class ArticulosController {
       .whereHas('lotes', (query) => {
         query.where('stock', '>', 0).where('estado', 'activo');
       }).preload('lotes', (query) => {
+        query.preload('articulo');
         query.where('stock', '>', 0).where('estado', 'activo');
       });
 
 
     return response.status(200).json(articulos);
   }
+  public async reporte_articulos_bajo_stock({ request, response, auth }: HttpContextContract) {
+    //id categoria y stock menor o igual que
 
+    const id_categoria = request.input('id_categoria');
+    const stock = request.input('stock');
+    if (id_categoria == null) {
+      return response.status(400).json({ message: 'El id de la categoria es requerido' });
+    }
+    if (stock == null) {
+      return response.status(400).json({ message: 'El stock es requerido' });
+    }
+    const articulos = await Articulo.query().where('categoria_id', id_categoria).where('stock', '<=', stock);
+    return response.status(200).json(articulos);
+  }
   public async listar({ request, response, auth }: HttpContextContract) {
     const id = request.input('id');
     if (id == null) {

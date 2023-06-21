@@ -20,17 +20,17 @@ export default class Categoria extends BaseModel {
   public categoria_id: number;
 
   @belongsTo(() => Usuario, {
-    localKey: 'usuario_id',
+    foreignKey: 'usuario_id',
   })
   public usuario: BelongsTo<typeof Usuario>;
 
   @belongsTo(() => Empresa, {
-    localKey: 'empresa_id',
+    foreignKey: 'empresa_id',
   })
   public empresa: BelongsTo<typeof Empresa>;
 
   @belongsTo(() => Categoria, {
-    localKey: 'categoria_id',
+    foreignKey: 'categoria_id',
   })
   public categoria_padre: BelongsTo<typeof Categoria>;
 

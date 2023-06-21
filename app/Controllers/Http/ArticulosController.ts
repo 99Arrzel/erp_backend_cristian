@@ -40,7 +40,7 @@ export default class ArticulosController {
       return response.status(400).json({ message: 'La categoria no existe' });
     }
 
-    const articulos = categoria.related('articulos').query().where('stock', '<=', stock);
+    const articulos = await categoria.related('articulos').query().where('stock', '<=', stock);
 
     return response.status(200).json(articulos);
   }

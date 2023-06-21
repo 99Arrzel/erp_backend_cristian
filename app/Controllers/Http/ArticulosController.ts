@@ -24,7 +24,7 @@ export default class ArticulosController {
 
     return response.status(200).json(articulos);
   }
-  public async reporte_articulos_bajo_stock({ request, response, auth }: HttpContextContract) {
+  public async reporte_articulos_bajo_stock({ request, response }: HttpContextContract) {
     //id categoria y stock menor o igual que
 
     const id_categoria = request.input('id_categoria');

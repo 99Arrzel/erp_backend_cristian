@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Articulo from 'App/Models/Articulo';
+import Categoria from 'App/Models/Categoria';
 import Empresa from 'App/Models/Empresa';
 
 export default class ArticulosController {
@@ -35,7 +36,13 @@ export default class ArticulosController {
     if (stock == null) {
       return response.status(400).json({ message: 'El stock es requerido' });
     }
-    const articulos = await Articulo.query().where('categoria_id', id_categoria).where('stock', '<=', stock);
+    const categoria = await Categoria.query().where('id', id_categoria).preload('articulos').first();
+    if (!categoria) {
+      return response.status(400).json({ message: 'La categoria no existe' });
+    }
+
+    const articulos = categoria.related('articulos').query().where('stock', '<=', stock);
+
     return response.status(200).json(articulos);
   }
   public async listar({ request, response, auth }: HttpContextContract) {

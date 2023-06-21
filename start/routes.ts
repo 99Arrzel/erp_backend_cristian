@@ -76,7 +76,7 @@ Route.group(() => {
       Route.post('/balance_general', 'ReportesTercerParcialsController.balance_general');
       Route.post('/estado_resultados', 'ReportesTercerParcialsController.estado_resultados');
       //final reporte_articulos_bajo_stock
-      Route.post('/reporte_articulos_bajo_stock', 'ReportesTercerParcialsController.reporte_articulos_bajo_stock');
+      Route.post('/reporte_articulos_bajo_stock', 'ArticulosController.reporte_articulos_bajo_stock');
     }).prefix('/reportes');
     Route.group(() => {
       Route.post('/listar', 'CategoriasController.listar');
